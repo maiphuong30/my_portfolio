@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sections/home_section.dart';
 
 void main() {
   runApp(const PortfolioApp());
@@ -69,7 +70,11 @@ class _PortfolioHomeState extends State<PortfolioHome> {
         controller: _scrollController,
         child: Column(
           children: [
-            _Section(key: homeKey, title: "Home Section", color: Colors.blue[50]!),
+            HomeSection(
+              key: homeKey,
+              onViewWork: () => scrollToSection(projectsKey),
+              onContact: () => scrollToSection(contactKey),
+            ),
             _Section(key: aboutKey, title: "About Section", color: Colors.green[50]!),
             _Section(key: skillsKey, title: "Skills Section", color: Colors.orange[50]!),
             _Section(key: projectsKey, title: "Projects Section", color: Colors.purple[50]!),
