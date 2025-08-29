@@ -74,6 +74,7 @@ class _PortfolioHomeState extends State<PortfolioHome> {
               key: homeKey,
               onViewWork: () => scrollToSection(projectsKey),
               onContact: () => scrollToSection(contactKey),
+              onScrollDown: () => scrollToSection(aboutKey),
             ),
             _Section(key: aboutKey, title: "About Section", color: Colors.green[50]!),
             _Section(key: skillsKey, title: "Skills Section", color: Colors.orange[50]!),
