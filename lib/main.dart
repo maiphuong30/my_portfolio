@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'sections/home_section.dart';
+import 'sections/about_section.dart';
 
 void main() {
   runApp(const PortfolioApp());
@@ -34,7 +35,10 @@ class _PortfolioHomeState extends State<PortfolioHome> {
   final projectsKey = GlobalKey();
   final contactKey = GlobalKey();
 
-  void scrollToSection(GlobalKey key) {
+  void scrollToSection(GlobalKey key, {bool closeDrawer = false}) {
+    if (closeDrawer) {
+      Navigator.pop(context); // ✅ chỉ đóng Drawer khi cần
+    }
     Scrollable.ensureVisible(
       key.currentContext!,
       duration: const Duration(milliseconds: 500),
@@ -66,6 +70,25 @@ class _PortfolioHomeState extends State<PortfolioHome> {
           }
         },
       ),
+      drawer: PortfolioDrawer(onMenuTap: (menu) {
+        switch (menu) {
+          case "Home":
+            scrollToSection(homeKey, closeDrawer: true);
+            break;
+          case "About":
+            scrollToSection(aboutKey, closeDrawer: true);
+            break;
+          case "Skills":
+            scrollToSection(skillsKey, closeDrawer: true);
+            break;
+          case "Projects":
+            scrollToSection(projectsKey, closeDrawer: true);
+            break;
+          case "Contact":
+            scrollToSection(contactKey, closeDrawer: true);
+            break;
+        }
+      }),
       body: SingleChildScrollView(
         controller: _scrollController,
         child: Column(
@@ -76,7 +99,7 @@ class _PortfolioHomeState extends State<PortfolioHome> {
               onContact: () => scrollToSection(contactKey),
               onScrollDown: () => scrollToSection(aboutKey),
             ),
-            _Section(key: aboutKey, title: "About Section", color: Colors.green[50]!),
+            AboutSection(key: aboutKey),
             _Section(key: skillsKey, title: "Skills Section", color: Colors.orange[50]!),
             _Section(key: projectsKey, title: "Projects Section", color: Colors.purple[50]!),
             _Section(key: contactKey, title: "Contact Section", color: Colors.red[50]!),
@@ -97,42 +120,84 @@ class PortfolioAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 0,
-      titleSpacing: 0,
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Bên trái: Icon trái tim + Tên
-          Row(
-            children: const [
-              Icon(Icons.favorite, color: Colors.red),
-              SizedBox(width: 8),
-              Text(
-                "My Portfolio",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isMobile = constraints.maxWidth < 600;
+
+        return AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          automaticallyImplyLeading: isMobile, // ✅ chỉ hiện menu mặc định khi mobile
+          titleSpacing: 10,
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: const [
+                  Icon(Icons.favorite, color: Colors.pink),
+                  SizedBox(width: 8),
+                  Text(
+                    "Mai Phuong",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                ],
               ),
+              if (!isMobile)
+                Row(
+                  children: [
+                    _NavItem(title: "Home", onTap: () => onMenuTap("Home")),
+                    _NavItem(title: "About", onTap: () => onMenuTap("About")),
+                    _NavItem(title: "Skills", onTap: () => onMenuTap("Skills")),
+                    _NavItem(title: "Projects", onTap: () => onMenuTap("Projects")),
+                    _NavItem(title: "Contact", onTap: () => onMenuTap("Contact")),
+                    const SizedBox(width: 16),
+                  ],
+                ),
             ],
           ),
+        );
+      },
+    );
+  }
+}
 
-          // Bên phải: Menu
-          Row(
-            children: [
-              _NavItem(title: "Home", onTap: () => onMenuTap("Home")),
-              _NavItem(title: "About", onTap: () => onMenuTap("About")),
-              _NavItem(title: "Skills", onTap: () => onMenuTap("Skills")),
-              _NavItem(title: "Projects", onTap: () => onMenuTap("Projects")),
-              _NavItem(title: "Contact", onTap: () => onMenuTap("Contact")),
-              const SizedBox(width: 16),
-            ],
-          )
+class PortfolioDrawer extends StatelessWidget {
+  final void Function(String menu) onMenuTap;
+
+  const PortfolioDrawer({super.key, required this.onMenuTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        padding: const EdgeInsets.only(top: 50),
+        children: [
+          _DrawerItem(title: "Home", onTap: () => onMenuTap("Home")),
+          _DrawerItem(title: "About", onTap: () => onMenuTap("About")),
+          _DrawerItem(title: "Skills", onTap: () => onMenuTap("Skills")),
+          _DrawerItem(title: "Projects", onTap: () => onMenuTap("Projects")),
+          _DrawerItem(title: "Contact", onTap: () => onMenuTap("Contact")),
         ],
       ),
+    );
+  }
+}
+
+class _DrawerItem extends StatelessWidget {
+  final String title;
+  final VoidCallback onTap;
+
+  const _DrawerItem({required this.title, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(title, style: const TextStyle(fontSize: 18)),
+      onTap: onTap,
     );
   }
 }
@@ -170,7 +235,7 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 600, // giả sử mỗi section cao 600px
+      height: 600,
       color: color,
       child: Center(
         child: Text(
