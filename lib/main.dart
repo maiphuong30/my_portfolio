@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'sections/home_section.dart';
 import 'sections/about_section.dart';
+import 'sections/skills_section.dart';
+import 'sections/projects_section.dart';
+import 'sections/contact_section.dart';
 
 void main() {
   runApp(const PortfolioApp());
@@ -37,7 +40,10 @@ class _PortfolioHomeState extends State<PortfolioHome> {
 
   void scrollToSection(GlobalKey key, {bool closeDrawer = false}) {
     if (closeDrawer) {
-      Navigator.pop(context); // ✅ chỉ đóng Drawer khi cần
+      // nếu drawer mở -> đóng trước khi scroll
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
     }
     Scrollable.ensureVisible(
       key.currentContext!,
@@ -100,9 +106,13 @@ class _PortfolioHomeState extends State<PortfolioHome> {
               onScrollDown: () => scrollToSection(aboutKey),
             ),
             AboutSection(key: aboutKey),
-            _Section(key: skillsKey, title: "Skills Section", color: Colors.orange[50]!),
-            _Section(key: projectsKey, title: "Projects Section", color: Colors.purple[50]!),
-            _Section(key: contactKey, title: "Contact Section", color: Colors.red[50]!),
+            SkillsSection(key: skillsKey),
+            ProjectsSection(key: projectsKey),
+            ContactSection(key: contactKey),
+
+            // <-- Footer inserted here -->
+            const SizedBox(height: 24),
+            const Footer(),
           ],
         ),
       ),
@@ -127,7 +137,7 @@ class PortfolioAppBar extends StatelessWidget implements PreferredSizeWidget {
         return AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          automaticallyImplyLeading: isMobile, // ✅ chỉ hiện menu mặc định khi mobile
+          automaticallyImplyLeading: isMobile, // chỉ hiện menu mặc định khi mobile
           titleSpacing: 10,
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -244,5 +254,82 @@ class _Section extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// -------------------------
+/// Footer widget (responsive)
+/// -------------------------
+class Footer extends StatelessWidget {
+  const Footer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final year = DateTime.now().year;
+    return Container(
+      width: double.infinity,
+      color: Colors.grey[100],
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+      child: LayoutBuilder(builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 800;
+        if (isMobile) {
+          // stacked, centered
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _leftFooterRow(centered: true),
+              const SizedBox(height: 12),
+              Text(
+                "Built with Flutter ✨",
+                style: TextStyle(color: Colors.black54),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text("© $year Mai Phuong. All rights reserved.",
+                  style: TextStyle(color: Colors.black54)),
+            ],
+          );
+        }
+
+        // desktop: three columns
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _leftFooterRow(centered: false),
+            Text(
+              "Built with Flutter ✨",
+              style: TextStyle(color: Colors.black54),
+              textAlign: TextAlign.center,
+            ),
+            Text("© $year Mai Phuong. All rights reserved.",
+                style: TextStyle(color: Colors.black54)),
+          ],
+        );
+      }),
+    );
+  }
+
+  Widget _leftFooterRow({required bool centered}) {
+    final row = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: const [
+        Text("Made with "),
+        Icon(Icons.favorite, color: Colors.pink, size: 16),
+        SizedBox(width: 6),
+        Text(" and "),
+        Icon(Icons.code, size: 16, color: Colors.blue),
+        SizedBox(width: 6),
+        Text(" and "),
+        Icon(Icons.local_cafe, size: 16, color: Colors.orange),
+        SizedBox(width: 8),
+        Text("by Mai Phuong"),
+      ],
+    );
+
+    if (centered) {
+      return Center(child: row);
+    } else {
+      return row;
+    }
   }
 }
