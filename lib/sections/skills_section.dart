@@ -1,35 +1,9 @@
-// lib/sections/skills_section.dart
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SkillsSection extends StatelessWidget {
   const SkillsSection({super.key});
-
-  // sample data
-  static const _frontendTags = [
-    "React/Next.js",
-    "TypeScript",
-    "CSS/Tailwind",
-    "JavaScript",
-    "Vue.js",
-    "HTML5"
-  ];
-  static const _designTags = [
-    "Figma",
-    "UI/UX Design",
-    "Prototyping",
-    "Design Systems",
-    "Adobe Creative Suite",
-    "Wireframing"
-  ];
-  static const _backendTags = [
-    "Node.js",
-    "Python",
-    "Git/GitHub",
-    "AWS/Vercel",
-    "MongoDB",
-    "PostgreSQL"
-  ];
-
+  
   static const _certificates = [
     {
       "title": "AWS Certified Solutions Architect",
@@ -95,240 +69,286 @@ class SkillsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = Colors.purple.shade700;
-    return Container(
-      color: Colors.grey[50],
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // small pill
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.black12,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text("My Skills"),
-          ),
-          const SizedBox(height: 18),
-          const Text(
-            "What I bring to the table ✨",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          const SizedBox(
-            width: 800,
-            child: Text(
-              "A blend of technical expertise and creative vision, backed by continuous learning and certifications.",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.black54),
-            ),
-          ),
-          const SizedBox(height: 36),
 
-          // --- Skill cards row (3 cards on wide screen) ---
-          LayoutBuilder(builder: (context, constraints) {
-            final isDesktop = constraints.maxWidth >= 900;
-            if (isDesktop) {
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _SkillCard(
-                      icon: Icons.code,
-                      iconBg: Colors.blue.shade50,
-                      title: "Frontend Development",
-                      tags: _frontendTags,
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: _SkillCard(
-                      icon: Icons.color_lens,
-                      iconBg: Colors.pink.shade50,
-                      title: "Design & UX",
-                      tags: _designTags,
-                    ),
-                  ),
-                  const SizedBox(width: 20),
-                  Expanded(
-                    child: _SkillCard(
-                      icon: Icons.storage,
-                      iconBg: Colors.green.shade50,
-                      title: "Backend & Tools",
-                      tags: _backendTags,
-                    ),
-                  ),
-                ],
-              );
-            } else {
-              // mobile / tablet: stacked with spacing
-              return Column(
-                children: [
-                  SizedBox(
-                    width: double.infinity,
-                    child: _SkillCard(
-                      icon: Icons.code,
-                      iconBg: Colors.blue.shade50,
-                      title: "Frontend Development",
-                      tags: _frontendTags,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: _SkillCard(
-                      icon: Icons.color_lens,
-                      iconBg: Colors.pink.shade50,
-                      title: "Design & UX",
-                      tags: _designTags,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: _SkillCard(
-                      icon: Icons.storage,
-                      iconBg: Colors.green.shade50,
-                      title: "Backend & Tools",
-                      tags: _backendTags,
-                    ),
-                  ),
-                ],
-              );
+    // Listen realtime collection 'skill_groups' (expected docs: frontend, design, backend)
+    final stream = FirebaseFirestore.instance.collection('skill_groups').snapshots();
+
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: stream,
+      builder: (context, snapshot) {
+        // handle errors / loading
+        if (snapshot.hasError) {
+          return Container(
+            color: Colors.grey[50],
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 28),
+            child: Center(child: Text('Error loading skills: ${snapshot.error}')),
+          );
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            color: Colors.grey[50],
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 28),
+            child: const Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // parse docs -> lists (if doc missing, list will be empty)
+        List<String> frontendTags = [];
+        List<String> designTags = [];
+        List<String> backendTags = [];
+
+        final docs = snapshot.data?.docs ?? [];
+        for (final doc in docs) {
+          final id = doc.id.toLowerCase();
+          final data = doc.data();
+          final dynamic tagsField = data['tags'];
+          if (tagsField is List) {
+            final tags = tagsField.map((e) => e?.toString() ?? '').where((s) => s.isNotEmpty).toList();
+            if (id == 'frontend') {
+              frontendTags = tags;
+            } else if (id == 'design') {
+              designTags = tags;
+            } else if (id == 'backend') {
+              backendTags = tags;
             }
-          }),
+          }
+        }
 
-          const SizedBox(height: 44),
-
-          // --- Certificates & Achievements header ---
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
+        return Container(
+          color: Colors.grey[50],
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Icon(Icons.school_outlined, color: accent),
-              const SizedBox(width: 8),
+              // small pill
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black12,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text("My Skills"),
+              ),
+              const SizedBox(height: 18),
               const Text(
-                "Certificates & Achievements",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                "What I bring to the table ✨",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              const SizedBox(
+                width: 800,
+                child: Text(
+                  "A blend of technical expertise and creative vision, backed by continuous learning and certifications.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                ),
+              ),
+              const SizedBox(height: 36),
+
+              // --- Skill cards row (3 cards on wide screen) ---
+              LayoutBuilder(builder: (context, constraints) {
+                final isDesktop = constraints.maxWidth >= 900;
+                if (isDesktop) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: _SkillCard(
+                          icon: Icons.code,
+                          iconBg: Colors.blue.shade50,
+                          title: "Frontend Development",
+                          tags: frontendTags,
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: _SkillCard(
+                          icon: Icons.color_lens,
+                          iconBg: Colors.pink.shade50,
+                          title: "Design & UX",
+                          tags: designTags,
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: _SkillCard(
+                          icon: Icons.storage,
+                          iconBg: Colors.green.shade50,
+                          title: "Backend & Tools",
+                          tags: backendTags,
+                        ),
+                      ),
+                    ],
+                  );
+                } else {
+                  // mobile / tablet: stacked with spacing (full width each)
+                  return Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: _SkillCard(
+                          icon: Icons.code,
+                          iconBg: Colors.blue.shade50,
+                          title: "Frontend Development",
+                          tags: frontendTags,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: _SkillCard(
+                          icon: Icons.color_lens,
+                          iconBg: Colors.pink.shade50,
+                          title: "Design & UX",
+                          tags: designTags,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: _SkillCard(
+                          icon: Icons.storage,
+                          iconBg: Colors.green.shade50,
+                          title: "Backend & Tools",
+                          tags: backendTags,
+                        ),
+                      ),
+                    ],
+                  );
+                }
+              }),
+
+              const SizedBox(height: 44),
+
+              // --- Certificates & Achievements header ---
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Icon(Icons.school_outlined, color: accent),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "Certificates & Achievements",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+
+              // certificates grid (static for now)
+              LayoutBuilder(builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                int columns = 1;
+                if (width > 1200) {
+                  columns = 3;
+                } else if (width > 900) {
+                  columns = 2;
+                } else {
+                  columns = 1;
+                }
+
+                return Wrap(
+                  spacing: 20,
+                  runSpacing: 20,
+                  children: _certificates
+                      .map((c) => SizedBox(
+                    width: (constraints.maxWidth - (20 * (columns - 1))) / columns,
+                    child: _CertificateCard(
+                      title: c['title'] as String,
+                      issuer: c['issuer'] as String,
+                      year: c['year'] as String,
+                      icon: c['icon'] as IconData,
+                    ),
+                  ))
+                      .toList(),
+                );
+              }),
+
+              const SizedBox(height: 40),
+
+              // --- Feature boxes (4) ---
+              Wrap(
+                spacing: 20,
+                runSpacing: 20,
+                alignment: WrapAlignment.center,
+                children: _featureList.map((f) {
+                  return SizedBox(
+                    width: 260,
+                    child: _FeatureCard(
+                      icon: f['icon'] as IconData,
+                      title: f['title'] as String,
+                      desc: f['desc'] as String,
+                    ),
+                  );
+                }).toList(),
+              ),
+
+              const SizedBox(height: 36),
+
+              // Technologies I Love
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(22),
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+                ),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.star, color: Colors.amber),
+                        SizedBox(width: 8),
+                        Text(
+                          "Technologies I Love",
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(Icons.star, color: Colors.amber),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      alignment: WrapAlignment.center,
+                      children: const [
+                        _TechChip('React'),
+                        _TechChip('Next.js'),
+                        _TechChip('TypeScript'),
+                        _TechChip('Tailwind CSS'),
+                        _TechChip('Node.js'),
+                        _TechChip('Python'),
+                        _TechChip('Figma'),
+                        _TechChip('Adobe Creative Suite'),
+                        _TechChip('Git'),
+                        _TechChip('AWS'),
+                        _TechChip('Vercel'),
+                        _TechChip('MongoDB'),
+                        _TechChip('PostgreSQL'),
+                        _TechChip('GraphQL'),
+                        _TechChip('REST APIs'),
+                        _TechChip('Responsive Design'),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                  ],
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 18),
-
-          // certificates grid (responsive)
-          LayoutBuilder(builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            int columns = 1;
-            if (width > 1200) {
-              columns = 3;
-            } else if (width > 900) {
-              columns = 2;
-            } else if (width > 600) {
-              columns = 1;
-            } else {
-              columns = 1;
-            }
-
-            return Wrap(
-              spacing: 20,
-              runSpacing: 20,
-              children: _certificates
-                  .map((c) => SizedBox(
-                width:
-                (constraints.maxWidth - (20 * (columns - 1))) / columns,
-                child: _CertificateCard(
-                  title: c['title'] as String,
-                  issuer: c['issuer'] as String,
-                  year: c['year'] as String,
-                  icon: c['icon'] as IconData,
-                ),
-              ))
-                  .toList(),
-            );
-          }),
-
-          const SizedBox(height: 40),
-
-          // --- Feature boxes (4) ---
-          Wrap(
-            spacing: 20,
-            runSpacing: 20,
-            alignment: WrapAlignment.center,
-            children: _featureList.map((f) {
-              return SizedBox(
-                width: 260,
-                child: _FeatureCard(
-                  icon: f['icon'] as IconData,
-                  title: f['title'] as String,
-                  desc: f['desc'] as String,
-                ),
-              );
-            }).toList(),
-          ),
-
-          const SizedBox(height: 36),
-
-          // Technologies I Love
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(22),
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200),
-              boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
-            ),
-            child: Column(
-              children: [
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(Icons.star, color: Colors.amber),
-                    SizedBox(width: 8),
-                    Text(
-                      "Technologies I Love",
-                      style:
-                      TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-                    ),
-                    SizedBox(width: 8),
-                    Icon(Icons.star, color: Colors.amber),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  alignment: WrapAlignment.center,
-                  children: const [
-                    _TechChip('React'),
-                    _TechChip('Next.js'),
-                    _TechChip('TypeScript'),
-                    _TechChip('Tailwind CSS'),
-                    _TechChip('Node.js'),
-                    _TechChip('Python'),
-                    _TechChip('Figma'),
-                    _TechChip('Adobe Creative Suite'),
-                    _TechChip('Git'),
-                    _TechChip('AWS'),
-                    _TechChip('Vercel'),
-                    _TechChip('MongoDB'),
-                    _TechChip('PostgreSQL'),
-                    _TechChip('GraphQL'),
-                    _TechChip('REST APIs'),
-                    _TechChip('Responsive Design'),
-                  ],
-                ),
-                const SizedBox(height: 6),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -381,8 +401,7 @@ class _SkillCard extends StatelessWidget {
             alignment: WrapAlignment.center,
             children: tags
                 .map((t) => Container(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(12),
@@ -441,9 +460,7 @@ class _CertificateCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style:
-                    const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 6),
                 Text(issuer, style: const TextStyle(color: Colors.black54)),
                 const SizedBox(height: 8),

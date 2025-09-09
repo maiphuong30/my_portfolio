@@ -1,11 +1,17 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'firebase_options.dart';
 import 'sections/home_section.dart';
 import 'sections/about_section.dart';
 import 'sections/skills_section.dart';
 import 'sections/projects_section.dart';
 import 'sections/contact_section.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform, // config tự sinh
+  );
   runApp(const PortfolioApp());
 }
 
