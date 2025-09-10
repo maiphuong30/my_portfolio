@@ -1,66 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../utils/icon_mapper.dart';
 
 class SkillsSection extends StatelessWidget {
   const SkillsSection({super.key});
-  
-  static const _certificates = [
-    {
-      "title": "AWS Certified Solutions Architect",
-      "issuer": "Amazon Web Services",
-      "year": "2024",
-      "icon": Icons.emoji_events
-    },
-    {
-      "title": "Google UX Design Professional Certificate",
-      "issuer": "Google via Coursera",
-      "year": "2023",
-      "icon": Icons.school
-    },
-    {
-      "title": "Meta Front-End Developer Certificate",
-      "issuer": "Meta via Coursera",
-      "year": "2023",
-      "icon": Icons.verified
-    },
-    {
-      "title": "JavaScript Algorithms and Data Structures",
-      "issuer": "freeCodeCamp",
-      "year": "2022",
-      "icon": Icons.code
-    },
-    {
-      "title": "Responsive Web Design Certification",
-      "issuer": "freeCodeCamp",
-      "year": "2022",
-      "icon": Icons.phone_iphone
-    },
-    {
-      "title": "Figma Academy Certificate",
-      "issuer": "Figma",
-      "year": "2022",
-      "icon": Icons.palette
-    },
-  ];
 
   static const _featureList = [
     {
-      "icon": Icons.smartphone_outlined,
+      "icon": "smartphone_outlined",
       "title": "Mobile-First Design",
       "desc": "Creating responsive experiences that work beautifully on all devices"
     },
     {
-      "icon": Icons.public,
+      "icon": "public",
       "title": "Web Performance",
       "desc": "Optimizing for speed, accessibility, and user experience"
     },
     {
-      "icon": Icons.flash_on,
+      "icon": "flash_on",
       "title": "Rapid Prototyping",
       "desc": "Quick iteration from concept to working prototype"
     },
     {
-      "icon": Icons.favorite_border,
+      "icon": "favorite_border",
       "title": "User-Centered Design",
       "desc": "Putting user needs and emotions at the center of design decisions"
     },
@@ -70,23 +32,28 @@ class SkillsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = Colors.purple.shade700;
 
-    // Listen realtime collection 'skill_groups' (expected docs: frontend, design, backend)
-    final stream = FirebaseFirestore.instance.collection('skill_groups').snapshots();
+    // Realtime stream cho skill_groups
+    final streamSkillGroups =
+    FirebaseFirestore.instance.collection('skill_groups').snapshots();
+
+    // Realtime stream cho certificates
+    final streamCertificates =
+    FirebaseFirestore.instance.collection('certificates').snapshots();
 
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: stream,
-      builder: (context, snapshot) {
+      stream: streamSkillGroups,
+      builder: (context, skillSnap) {
         // handle errors / loading
-        if (snapshot.hasError) {
+        if (skillSnap.hasError) {
           return Container(
             color: Colors.grey[50],
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 28),
-            child: Center(child: Text('Error loading skills: ${snapshot.error}')),
+            child: Center(child: Text('Error loading skills: ${skillSnap.error}')),
           );
         }
 
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (skillSnap.connectionState == ConnectionState.waiting) {
           return Container(
             color: Colors.grey[50],
             width: double.infinity,
@@ -95,24 +62,30 @@ class SkillsSection extends StatelessWidget {
           );
         }
 
-        // parse docs -> lists (if doc missing, list will be empty)
+        // Parse skill groups
         List<String> frontendTags = [];
         List<String> designTags = [];
         List<String> backendTags = [];
+        List<String> techTags = [];
 
-        final docs = snapshot.data?.docs ?? [];
+        final docs = skillSnap.data?.docs ?? [];
         for (final doc in docs) {
           final id = doc.id.toLowerCase();
           final data = doc.data();
           final dynamic tagsField = data['tags'];
           if (tagsField is List) {
-            final tags = tagsField.map((e) => e?.toString() ?? '').where((s) => s.isNotEmpty).toList();
+            final tags = tagsField
+                .map((e) => e?.toString() ?? '')
+                .where((s) => s.isNotEmpty)
+                .toList();
             if (id == 'frontend') {
               frontendTags = tags;
             } else if (id == 'design') {
               designTags = tags;
             } else if (id == 'backend') {
               backendTags = tags;
+            } else if (id == 'techchip') {
+              techTags = tags;
             }
           }
         }
@@ -240,34 +213,69 @@ class SkillsSection extends StatelessWidget {
               ),
               const SizedBox(height: 18),
 
-              // certificates grid (static for now)
-              LayoutBuilder(builder: (context, constraints) {
-                final width = constraints.maxWidth;
-                int columns = 1;
-                if (width > 1200) {
-                  columns = 3;
-                } else if (width > 900) {
-                  columns = 2;
-                } else {
-                  columns = 1;
-                }
+              // certificates grid (realtime from Firestore)
+              StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: streamCertificates,
+                builder: (context, certSnap) {
+                  // nếu lỗi -> hiển thị message nhỏ
+                  if (certSnap.hasError) {
+                    return Text('Error loading certificates: ${certSnap.error}',
+                        style: const TextStyle(color: Colors.red));
+                  }
 
-                return Wrap(
-                  spacing: 20,
-                  runSpacing: 20,
-                  children: _certificates
-                      .map((c) => SizedBox(
-                    width: (constraints.maxWidth - (20 * (columns - 1))) / columns,
-                    child: _CertificateCard(
-                      title: c['title'] as String,
-                      issuer: c['issuer'] as String,
-                      year: c['year'] as String,
-                      icon: c['icon'] as IconData,
-                    ),
-                  ))
-                      .toList(),
-                );
-              }),
+                  // nếu đang load -> spinner nhỏ
+                  if (certSnap.connectionState == ConnectionState.waiting) {
+                    return const Center(child: SizedBox(width: 28, height: 28, child: CircularProgressIndicator()));
+                  }
+
+                  final certDocs = certSnap.data?.docs ?? [];
+
+                  // chuyển thành list data
+                  final certItems = certDocs.map((d) {
+                    final data = d.data();
+                    final title = (data['title'] ?? '').toString();
+                    final issuer = (data['issuer'] ?? '').toString();
+                    final year = (data['year'] ?? '').toString();
+                    final iconName = (data['icon'] ?? '').toString();
+                    final icon = iconFromString(iconName);
+                    return {
+                      'title': title,
+                      'issuer': issuer,
+                      'year': year,
+                      'icon': icon,
+                    };
+                  }).toList();
+
+                  // responsive columns
+                  return LayoutBuilder(builder: (context, constraints) {
+                    final width = constraints.maxWidth;
+                    int columns = 1;
+                    if (width > 1200) {
+                      columns = 3;
+                    } else if (width > 900) {
+                      columns = 2;
+                    } else {
+                      columns = 1;
+                    }
+
+                    return Wrap(
+                      spacing: 20,
+                      runSpacing: 20,
+                      children: certItems
+                          .map((c) => SizedBox(
+                        width: (constraints.maxWidth - (20 * (columns - 1))) / columns,
+                        child: _CertificateCard(
+                          title: c['title'] as String,
+                          issuer: c['issuer'] as String,
+                          year: c['year'] as String,
+                          icon: c['icon'] as IconData,
+                        ),
+                      ))
+                          .toList(),
+                    );
+                  });
+                },
+              ),
 
               const SizedBox(height: 40),
 
@@ -280,7 +288,7 @@ class SkillsSection extends StatelessWidget {
                   return SizedBox(
                     width: 260,
                     child: _FeatureCard(
-                      icon: f['icon'] as IconData,
+                      icon: iconFromString(f['icon'] ?? ''),
                       title: f['title'] as String,
                       desc: f['desc'] as String,
                     ),
@@ -322,24 +330,7 @@ class SkillsSection extends StatelessWidget {
                       spacing: 10,
                       runSpacing: 10,
                       alignment: WrapAlignment.center,
-                      children: const [
-                        _TechChip('React'),
-                        _TechChip('Next.js'),
-                        _TechChip('TypeScript'),
-                        _TechChip('Tailwind CSS'),
-                        _TechChip('Node.js'),
-                        _TechChip('Python'),
-                        _TechChip('Figma'),
-                        _TechChip('Adobe Creative Suite'),
-                        _TechChip('Git'),
-                        _TechChip('AWS'),
-                        _TechChip('Vercel'),
-                        _TechChip('MongoDB'),
-                        _TechChip('PostgreSQL'),
-                        _TechChip('GraphQL'),
-                        _TechChip('REST APIs'),
-                        _TechChip('Responsive Design'),
-                      ],
+                      children: techTags.map((name) => _TechChip(name)).toList(),
                     ),
                     const SizedBox(height: 6),
                   ],
