@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeSection extends StatefulWidget {
   final VoidCallback onViewWork;   // scroll tới Projects
@@ -20,6 +22,12 @@ class _HomeSectionState extends State<HomeSection>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<Offset> _offsetAnimation;
+  late Animation<Offset> _dot1Animation; // floating dot 1
+  late Animation<Offset> _dot2Animation; // floating dot 2
+
+  // Gradient colors used for primary button / headline
+  static const Color _gradStart = Color(0xFFFF5A9E); // pink-ish
+  static const Color _gradEnd = Color(0xFF7C3AED); // purple-ish
 
   @override
   void initState() {
@@ -36,6 +44,16 @@ class _HomeSectionState extends State<HomeSection>
       parent: _controller,
       curve: Curves.easeInOut,
     ));
+
+    _dot1Animation = Tween<Offset>(
+      begin: const Offset(0, 0),
+      end: const Offset(0, 0.10),
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _dot2Animation = Tween<Offset>(
+      begin: const Offset(0, 0.06),
+      end: const Offset(0, -0.06),
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -64,19 +82,253 @@ class _HomeSectionState extends State<HomeSection>
             ),
             const SizedBox(width: 12),
             IconButton(
-              onPressed: () {},
+              onPressed: () async {
+                final Uri url = Uri.parse("https://www.facebook.com/thaidoanmaiphuong");
+                if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                  throw Exception('Could not launch $url');
+                }
+              },
               icon: const Icon(Icons.facebook, color: Colors.blue),
             ),
             IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.linked_camera, color: Colors.purple),
+              onPressed: () async {
+                final Uri url = Uri.parse("https://github.com/maiphuong30");
+                if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                  throw Exception('Could not launch $url');
+                }
+              },
+              icon: FaIcon(FontAwesomeIcons.github, color: Colors.black),
             ),
             IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.alternate_email, color: Colors.black87),
+              onPressed: () async {
+                final Uri url = Uri.parse("https://www.linkedin.com/in/thaidoanmaiphuong");
+                if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                  throw Exception('Could not launch $url');
+                }
+              },
+              icon: const FaIcon(FontAwesomeIcons.squareLinkedin, color: Colors.blueAccent),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Gradient text implemented with ShaderMask
+  Widget gradientHeadline(String text, {double fontSize = 36}) {
+    final gradient = const LinearGradient(
+      colors: [
+        _gradStart,
+        _gradEnd,
+      ],
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+    );
+
+    return ShaderMask(
+      shaderCallback: (bounds) =>
+          gradient.createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
+      blendMode: BlendMode.srcIn,
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.bold,
+          color: Colors.white, // replaced by shader
+        ),
+      ),
+    );
+  }
+
+  /// Badge similar to template: small pill with icon and text
+  Widget badgePill(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        // subtle gradient background for the pill
+        gradient: LinearGradient(
+          colors: [_gradStart.withOpacity(0.14), _gradEnd.withOpacity(0.10)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.auto_awesome, size: 16, color: Color(0xFFFF5A9E)),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build primary gradient button similar to template.
+  Widget _buildPrimaryButton(String text, VoidCallback onPressed,
+      {EdgeInsetsGeometry? padding}) {
+    final pad = padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 14);
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 6,
+        shadowColor: _gradEnd.withOpacity(0.45),
+        backgroundColor: Colors.transparent, // gradient will paint
+      ),
+      child: Ink(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [_gradStart, _gradEnd]),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Container(
+          padding: pad,
+          alignment: Alignment.center,
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Build outlined button whose border color matches gradient start.
+  Widget _buildOutlineButton(String text, VoidCallback onPressed,
+      {EdgeInsetsGeometry? padding}) {
+    final pad = padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 14);
+    return OutlinedButton(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        padding: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        side: BorderSide(color: _gradStart, width: 2),
+      ),
+      child: Container(
+        padding: pad,
+        alignment: Alignment.center,
+        child: Text(
+          text,
+          style: TextStyle(fontSize: 16, color: _gradStart, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
+
+  /// Build profile with decorative background and floating dots.
+  /// diameter: requested size for whole widget (profile circle area)
+  Widget _buildProfileWithDecoration(double diameter) {
+    final bgSize = diameter * 1.16;
+    final imageSize = diameter * 0.88;
+    final borderWidth = diameter * 0.05;
+
+    return SizedBox(
+      width: diameter,
+      height: diameter,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // radial glow behind profile
+          Container(
+            width: bgSize,
+            height: bgSize,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                center: const Alignment(-0.2, -0.2),
+                radius: 0.9,
+                colors: [
+                  _gradStart.withOpacity(0.20),
+                  _gradEnd.withOpacity(0.12),
+                  Colors.transparent,
+                ],
+                stops: const [0.0, 0.45, 1.0],
+              ),
+            ),
+          ),
+
+          // main profile with white border + shadow
+          Container(
+            width: imageSize,
+            height: imageSize,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: borderWidth),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.20),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: Image.asset(
+                "assets/images/IMG_MYPHOTO.jpg",
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.grey.shade200,
+                  child: const Center(
+                    child: Icon(Icons.person, size: 48, color: Colors.grey),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Floating dot 1 (top-right)
+          Positioned(
+            top: diameter * 0.04,
+            right: diameter * 0.04,
+            child: SlideTransition(
+              position: _dot1Animation,
+              child: Container(
+                width: diameter * 0.14,
+                height: diameter * 0.14,
+                decoration: BoxDecoration(
+                  color: _gradStart,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: _gradStart.withOpacity(0.45),
+                      blurRadius: 10,
+                      spreadRadius: 1.5,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Floating dot 2 (bottom-left)
+          Positioned(
+            bottom: diameter * 0.04,
+            left: diameter * 0.04,
+            child: SlideTransition(
+              position: _dot2Animation,
+              child: Container(
+                width: diameter * 0.11,
+                height: diameter * 0.11,
+                decoration: BoxDecoration(
+                  color: _gradEnd,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: _gradEnd.withOpacity(0.40),
+                      blurRadius: 8,
+                      spreadRadius: 1.0,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -85,10 +337,11 @@ class _HomeSectionState extends State<HomeSection>
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
+    const double profileFraction = 0.4;
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
-      height: isMobile ? 750 : 650,
+      height: isMobile ? 800 : 700,
       color: Colors.blue[50],
       child: Stack(
         alignment: Alignment.center,
@@ -98,42 +351,20 @@ class _HomeSectionState extends State<HomeSection>
               ? Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo lên trên
-              Container(
-                width: 160,
-                height: 160,
-                decoration: BoxDecoration(
-                  color: Colors.purple.shade100,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Image.asset(
-                    "assets/images/testImg.png", // Đường dẫn tới ảnh của bạn
-                    width: 100, // chiều rộng
-                    height: 100, // chiều cao
-                    fit: BoxFit.contain, // giữ tỉ lệ ảnh
-                  ),
-                ),
-              ),
+              _buildProfileWithDecoration(200),
               const SizedBox(height: 32),
-              // Text + Button
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Text(
-                    "Hi, I'm Phương 👋",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  badgePill("Available for new projects"),
+                  const SizedBox(height: 12),
+                  // gradient headline
+                  gradientHeadline("Hi, I'm Phương 👋", fontSize: 28),
                   const SizedBox(height: 16),
                   const Text(
-                    "A passionate developer who loves building beautiful apps.",
+                    "A developer who loves creating beautiful, functional experiences—and occasionally convincing my code to behave.",
                     textAlign: TextAlign.center,
-                    style:
-                    TextStyle(fontSize: 16, color: Colors.black54),
+                    style: TextStyle(fontSize: 16, color: Colors.black54),
                   ),
                   const SizedBox(height: 24),
                   Wrap(
@@ -141,135 +372,75 @@ class _HomeSectionState extends State<HomeSection>
                     runSpacing: 12,
                     alignment: WrapAlignment.center,
                     children: [
-                      ElevatedButton(
-                        onPressed: widget.onViewWork,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
+                      _buildPrimaryButton("View My Work", widget.onViewWork,
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          "View My Work",
-                          style: TextStyle(
-                              fontSize: 16, color: Colors.white),
-                        ),
-                      ),
-                      OutlinedButton(
-                        onPressed: widget.onContact,
-                        style: OutlinedButton.styleFrom(
+                              horizontal: 20, vertical: 12)),
+                      _buildOutlineButton("Get in touch", widget.onContact,
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
-                          side: const BorderSide(
-                              color: Colors.blue, width: 2),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          "Get in touch",
-                          style: TextStyle(
-                              fontSize: 16, color: Colors.blue),
-                        ),
-                      ),
+                              horizontal: 20, vertical: 12)),
                     ],
                   ),
-                  // Follow Me (center trên mobile)
                   _buildFollowMe(center: true),
                 ],
               ),
             ],
           )
-              : Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Bên trái: text + button
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      "Hi, I'm Phương 👋",
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
+              : LayoutBuilder(builder: (context, constraints) {
+            // available width inside the container (excluding horizontal padding)
+            final availableWidth = constraints.maxWidth;
+            // profile area width computed as fraction of available container width
+            final profileAreaWidth = availableWidth * profileFraction;
+            // diameter for profile: keep a margin inside profile area (90%)
+            double computedDiameter = profileAreaWidth * 0.9;
+            // clamp diameter to reasonable min/max to avoid extreme sizes
+            final double diameter = computedDiameter.clamp(160.0, 420.0);
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Left: text + buttons
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      badgePill("Available for new projects"),
+                      const SizedBox(height: 12),
+                      // gradient headline
+                      gradientHeadline("Hi, I'm Phương 👋", fontSize: 36),
+                      const SizedBox(height: 16),
+                      const Text(
+                        "A developer who loves creating beautiful, functional experiences—and occasionally convincing my code to behave.",
+                        style: TextStyle(fontSize: 18, color: Colors.black54),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      "A passionate developer who loves building beautiful apps.",
-                      style: TextStyle(
-                          fontSize: 18, color: Colors.black54),
-                    ),
-                    const SizedBox(height: 32),
-                    Row(
-                      children: [
-                        ElevatedButton(
-                          onPressed: widget.onViewWork,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            "View My Work",
-                            style: TextStyle(
-                                fontSize: 16, color: Colors.white),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        OutlinedButton(
-                          onPressed: widget.onContact,
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 14),
-                            side: const BorderSide(
-                                color: Colors.blue, width: 2),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            "Get in touch",
-                            style: TextStyle(
-                                fontSize: 16, color: Colors.blue),
-                          ),
-                        ),
-                      ],
-                    ),
-                    // Follow Me (căn trái trên desktop)
-                    _buildFollowMe(),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 40),
-              // Bên phải: logo Flutter
-              Container(
-                width: 220,
-                height: 220,
-                decoration: BoxDecoration(
-                  color: Colors.purple.shade100,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Image.asset(
-                    "assets/images/testImg.png", // Đường dẫn tới ảnh của bạn
-                    width: 140, // chiều rộng
-                    height: 140, // chiều cao
-                    fit: BoxFit.cover,
+                      const SizedBox(height: 32),
+                      Row(
+                        children: [
+                          _buildPrimaryButton("View My Work", widget.onViewWork),
+                          const SizedBox(width: 16),
+                          _buildOutlineButton("Get in touch", widget.onContact),
+                        ],
+                      ),
+                      _buildFollowMe(),
+                    ],
                   ),
                 ),
-              ),
-            ],
-          ),
 
-          // Scroll Down + mũi tên nhún
+                const SizedBox(width: 24),
+
+                // Right: profile area sized by fraction of available width
+                SizedBox(
+                  width: profileAreaWidth,
+                  child: Center(
+                    // pass clamped diameter into builder
+                    child: _buildProfileWithDecoration(diameter),
+                  ),
+                ),
+              ],
+            );
+          }),
+
+          // Scroll Down + arrow animation
           Positioned(
             bottom: 20,
             child: InkWell(
