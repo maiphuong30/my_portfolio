@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/icon_mapper.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SkillsSection extends StatelessWidget {
   const SkillsSection({super.key});
@@ -64,7 +65,7 @@ class SkillsSection extends StatelessWidget {
 
         // Parse skill groups
         List<String> frontendTags = [];
-        List<String> designTags = [];
+        List<String> dataTags = [];
         List<String> backendTags = [];
         List<String> techTags = [];
 
@@ -80,8 +81,8 @@ class SkillsSection extends StatelessWidget {
                 .toList();
             if (id == 'frontend') {
               frontendTags = tags;
-            } else if (id == 'design') {
-              designTags = tags;
+            } else if (id == 'data') {
+              dataTags = tags;
             } else if (id == 'backend') {
               backendTags = tags;
             } else if (id == 'techchip') {
@@ -132,29 +133,35 @@ class SkillsSection extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: _SkillCard(
-                          icon: Icons.code,
-                          iconBg: Colors.blue.shade50,
-                          title: "Frontend Development",
-                          tags: frontendTags,
+                        child: _Hoverable(
+                          child: _SkillCard(
+                            icon: Icons.code,
+                            iconBg: Colors.blue.shade50,
+                            title: "Frontend Development",
+                            tags: frontendTags,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 20),
                       Expanded(
-                        child: _SkillCard(
-                          icon: Icons.color_lens,
-                          iconBg: Colors.pink.shade50,
-                          title: "Design & UX",
-                          tags: designTags,
+                        child: _Hoverable(
+                          child: _SkillCard(
+                            icon: Icons.storage,
+                            iconBg: Colors.pink.shade50,
+                            title: "Backend & Tools",
+                            tags: backendTags,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 20),
                       Expanded(
-                        child: _SkillCard(
-                          icon: Icons.storage,
-                          iconBg: Colors.green.shade50,
-                          title: "Backend & Tools",
-                          tags: backendTags,
+                        child: _Hoverable(
+                          child: _SkillCard(
+                            icon: Icons.add_chart_outlined,
+                            iconBg: Colors.green.shade50,
+                            title: "Data & Automation",
+                            tags: dataTags,
+                          ),
                         ),
                       ),
                     ],
@@ -165,32 +172,32 @@ class SkillsSection extends StatelessWidget {
                     children: [
                       SizedBox(
                         width: double.infinity,
-                        child: _SkillCard(
+                        child: _Hoverable(child: _SkillCard(
                           icon: Icons.code,
                           iconBg: Colors.blue.shade50,
                           title: "Frontend Development",
                           tags: frontendTags,
-                        ),
+                        )),
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
-                        child: _SkillCard(
+                        child: _Hoverable(child: _SkillCard(
                           icon: Icons.color_lens,
                           iconBg: Colors.pink.shade50,
                           title: "Design & UX",
-                          tags: designTags,
-                        ),
+                          tags: dataTags,
+                        )),
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
-                        child: _SkillCard(
+                        child: _Hoverable(child: _SkillCard(
                           icon: Icons.storage,
                           iconBg: Colors.green.shade50,
                           title: "Backend & Tools",
                           tags: backendTags,
-                        ),
+                        )),
                       ),
                     ],
                   );
@@ -237,12 +244,14 @@ class SkillsSection extends StatelessWidget {
                     final issuer = (data['issuer'] ?? '').toString();
                     final year = (data['year'] ?? '').toString();
                     final iconName = (data['icon'] ?? '').toString();
+                    final link = (data['link'] ?? '').toString();
                     final icon = iconFromString(iconName);
                     return {
                       'title': title,
                       'issuer': issuer,
                       'year': year,
                       'icon': icon,
+                      'link': link,
                     };
                   }).toList();
 
@@ -264,11 +273,15 @@ class SkillsSection extends StatelessWidget {
                       children: certItems
                           .map((c) => SizedBox(
                         width: (constraints.maxWidth - (20 * (columns - 1))) / columns,
-                        child: _CertificateCard(
-                          title: c['title'] as String,
-                          issuer: c['issuer'] as String,
-                          year: c['year'] as String,
-                          icon: c['icon'] as IconData,
+                        child: _Hoverable(
+                          // user requested no modal — just a View button inside card
+                          child: _CertificateCard(
+                            title: c['title'] as String,
+                            issuer: c['issuer'] as String,
+                            year: c['year'] as String,
+                            icon: c['icon'] as IconData,
+                            link: c['link'] as String, // <-- pass link here
+                          ),
                         ),
                       ))
                           .toList(),
@@ -287,10 +300,13 @@ class SkillsSection extends StatelessWidget {
                 children: _featureList.map((f) {
                   return SizedBox(
                     width: 260,
-                    child: _FeatureCard(
-                      icon: iconFromString(f['icon'] ?? ''),
-                      title: f['title'] as String,
-                      desc: f['desc'] as String,
+                    height: 180,
+                    child: _Hoverable(
+                      child: _FeatureCard(
+                        icon: iconFromString(f['icon'] ?? ''),
+                        title: f['title'] as String,
+                        desc: f['desc'] as String,
+                      ),
                     ),
                   );
                 }).toList(),
@@ -330,7 +346,9 @@ class SkillsSection extends StatelessWidget {
                       spacing: 10,
                       runSpacing: 10,
                       alignment: WrapAlignment.center,
-                      children: techTags.map((name) => _TechChip(name)).toList(),
+                      children: techTags.map((name) => _Hoverable(
+                        child: _TechChip(name),
+                      )).toList(),
                     ),
                     const SizedBox(height: 6),
                   ],
@@ -340,6 +358,57 @@ class SkillsSection extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+// ----------------- Hoverable wrapper -----------------
+class _Hoverable extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+  final Duration duration;
+
+  const _Hoverable({required this.child, this.onTap, this.duration = const Duration(milliseconds: 180)});
+
+  @override
+  State<_Hoverable> createState() => _HoverableState();
+}
+
+class _HoverableState extends State<_Hoverable> {
+  bool _hovered = false;
+
+  void _setHovered(bool v) {
+    if (!mounted) return;
+    setState(() => _hovered = v);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // on web/desktop, show mouse cursor; on mobile, basic
+    final cursor = widget.onTap != null ? SystemMouseCursors.click : SystemMouseCursors.basic;
+
+    return MouseRegion(
+      cursor: cursor,
+      onEnter: (_) => _setHovered(true),
+      onExit: (_) => _setHovered(false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedScale(
+          scale: _hovered ? 1.02 : 1.0,
+          duration: widget.duration,
+          curve: Curves.easeOut,
+          child: AnimatedPhysicalModel(
+            duration: widget.duration,
+            curve: Curves.easeOut,
+            elevation: _hovered ? 10 : 2,
+            shape: BoxShape.rectangle,
+            shadowColor: Colors.black26,
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            child: widget.child,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -369,7 +438,7 @@ class _SkillCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.grey.shade200),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+        // shadow moved to _Hoverable
       ),
       child: Column(
         children: [
@@ -416,12 +485,14 @@ class _CertificateCard extends StatelessWidget {
   final String issuer;
   final String year;
   final IconData icon;
+  final String link; // NEW: link to certificate (may be empty)
 
   const _CertificateCard({
     required this.title,
     required this.issuer,
     required this.year,
     required this.icon,
+    this.link = '',
   });
 
   @override
@@ -433,38 +504,75 @@ class _CertificateCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+        // shadow moved to _Hoverable
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: Colors.purple),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
-                const SizedBox(height: 6),
-                Text(issuer, style: const TextStyle(color: Colors.black54)),
-                const SizedBox(height: 8),
-                Row(
+          // top row: icon + text
+          Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: Colors.purple),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.calendar_today, size: 14, color: Colors.black45),
-                    const SizedBox(width: 6),
-                    Text(year, style: const TextStyle(color: Colors.black45)),
+                    Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 6),
+                    Text(issuer, style: const TextStyle(color: Colors.black54)),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.calendar_today, size: 14, color: Colors.black45),
+                        const SizedBox(width: 6),
+                        Text(year, style: const TextStyle(color: Colors.black45)),
+                      ],
+                    )
                   ],
-                )
+                ),
+              ),
+            ],
+          ),
+
+          // spacer + action button (if link provided)
+          if (link.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton.icon(
+                  onPressed: () async {
+                    final uri = Uri.tryParse(link);
+                    if (uri == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Link không hợp lệ')));
+                      return;
+                    }
+                    try {
+                      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Không thể mở link')));
+                      }
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Không thể mở link')));
+                    }
+                  },
+                  icon: const Icon(Icons.open_in_new),
+                  label: const Text('View'),
+                ),
               ],
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -490,7 +598,7 @@ class _FeatureCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+        // shadow moved to _Hoverable
       ),
       child: Column(
         children: [

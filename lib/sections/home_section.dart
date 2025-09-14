@@ -198,7 +198,6 @@ class _HomeSectionState extends State<HomeSection>
     );
   }
 
-  /// Build outlined button whose border color matches gradient start.
   Widget _buildOutlineButton(String text, VoidCallback onPressed,
       {EdgeInsetsGeometry? padding}) {
     final pad = padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 14);
@@ -339,128 +338,164 @@ class _HomeSectionState extends State<HomeSection>
     final isMobile = screenWidth < 600;
     const double profileFraction = 0.4;
 
+    // subtract AppBar height (kToolbarHeight) so HomeSection fits the visible area below AppBar
+    final double deviceHeight =
+        MediaQuery.of(context).size.height -
+            MediaQuery.of(context).padding.vertical -
+            kToolbarHeight;
+    final double containerHeight = deviceHeight.clamp(360.0, 1100.0);
+
+    // small vertical padding on mobile
+    final EdgeInsets contentPadding = EdgeInsets.symmetric(vertical: isMobile ? 36 : 60, horizontal: 24);
+
+    // --- BUTTON SIZING FOR MOBILE: ensure two buttons fit on one row ---
+    final double horizontalPadding = 24.0; // matches contentPadding horizontal
+    const double gapBetweenButtons = 12.0;
+    final double computedButtonWidth = (screenWidth - horizontalPadding * 2 - gapBetweenButtons) / 2;
+    const double buttonMinWidth = 120.0; // avoid too small buttons
+    final double buttonWidth = computedButtonWidth < buttonMinWidth ? buttonMinWidth : computedButtonWidth;
+
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
-      height: isMobile ? 800 : 700,
+      height: containerHeight,
       color: Colors.blue[50],
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Nội dung chính: responsive
-          isMobile
-              ? Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildProfileWithDecoration(200),
-              const SizedBox(height: 32),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  badgePill("Available for new projects"),
-                  const SizedBox(height: 12),
-                  // gradient headline
-                  gradientHeadline("Hi, I'm Phương 👋", fontSize: 28),
-                  const SizedBox(height: 16),
-                  const Text(
-                    "A developer who loves creating beautiful, functional experiences—and occasionally convincing my code to behave.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.black54),
-                  ),
-                  const SizedBox(height: 24),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      _buildPrimaryButton("View My Work", widget.onViewWork,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12)),
-                      _buildOutlineButton("Get in touch", widget.onContact,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12)),
-                    ],
-                  ),
-                  _buildFollowMe(center: true),
-                ],
-              ),
-            ],
-          )
-              : LayoutBuilder(builder: (context, constraints) {
-            // available width inside the container (excluding horizontal padding)
-            final availableWidth = constraints.maxWidth;
-            // profile area width computed as fraction of available container width
-            final profileAreaWidth = availableWidth * profileFraction;
-            // diameter for profile: keep a margin inside profile area (90%)
-            double computedDiameter = profileAreaWidth * 0.9;
-            // clamp diameter to reasonable min/max to avoid extreme sizes
-            final double diameter = computedDiameter.clamp(160.0, 420.0);
+          // Bounded scrollable area (height = containerHeight)
+          SizedBox(
+            height: containerHeight,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: containerHeight),
+                child: Center(
+                  child: Padding(
+                    padding: contentPadding,
+                    child: isMobile
+                        ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildProfileWithDecoration(200),
+                        const SizedBox(height: 32),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            badgePill("Available for new projects"),
+                            const SizedBox(height: 12),
+                            gradientHeadline("Hi, I'm Phương 👋", fontSize: 28),
+                            const SizedBox(height: 16),
+                            const Text(
+                              "A developer who loves creating beautiful, functional experiences—and occasionally convincing my code to behave.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 16, color: Colors.black54),
+                            ),
+                            const SizedBox(height: 24),
+                            // <-- REPLACED: use Row with fixed button widths so both buttons stay on one line on mobile -->
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: buttonWidth,
+                                  child: _buildPrimaryButton(
+                                    "View My Work",
+                                    widget.onViewWork,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                  ),
+                                ),
+                                const SizedBox(width: gapBetweenButtons),
+                                SizedBox(
+                                  width: buttonWidth,
+                                  child: _buildOutlineButton(
+                                    "Get in touch",
+                                    widget.onContact,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            _buildFollowMe(center: true),
+                          ],
+                        ),
+                      ],
+                    )
+                        : LayoutBuilder(builder: (context, constraints) {
+                      final availableWidth = constraints.maxWidth;
+                      final profileAreaWidth = availableWidth * profileFraction;
+                      double computedDiameter = profileAreaWidth * 0.9;
+                      final double diameter = computedDiameter.clamp(160.0, 420.0);
 
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Left: text + buttons
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      badgePill("Available for new projects"),
-                      const SizedBox(height: 12),
-                      // gradient headline
-                      gradientHeadline("Hi, I'm Phương 👋", fontSize: 36),
-                      const SizedBox(height: 16),
-                      const Text(
-                        "A developer who loves creating beautiful, functional experiences—and occasionally convincing my code to behave.",
-                        style: TextStyle(fontSize: 18, color: Colors.black54),
-                      ),
-                      const SizedBox(height: 32),
-                      Row(
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          _buildPrimaryButton("View My Work", widget.onViewWork),
-                          const SizedBox(width: 16),
-                          _buildOutlineButton("Get in touch", widget.onContact),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                badgePill("Available for new projects"),
+                                const SizedBox(height: 12),
+                                gradientHeadline("Hi, I'm Phương 👋", fontSize: 36),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  "A developer who loves creating beautiful, functional experiences—and occasionally convincing my code to behave.",
+                                  style: TextStyle(fontSize: 18, color: Colors.black54),
+                                ),
+                                const SizedBox(height: 32),
+                                Row(
+                                  children: [
+                                    _buildPrimaryButton("View My Work", widget.onViewWork),
+                                    const SizedBox(width: 16),
+                                    _buildOutlineButton("Get in touch", widget.onContact),
+                                  ],
+                                ),
+                                _buildFollowMe(),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 24),
+                          SizedBox(
+                            width: profileAreaWidth,
+                            child: Center(
+                              child: _buildProfileWithDecoration(diameter),
+                            ),
+                          ),
                         ],
-                      ),
-                      _buildFollowMe(),
-                    ],
+                      );
+                    }),
                   ),
                 ),
+              ),
+            ),
+          ),
 
-                const SizedBox(width: 24),
-
-                // Right: profile area sized by fraction of available width
-                SizedBox(
-                  width: profileAreaWidth,
-                  child: Center(
-                    // pass clamped diameter into builder
-                    child: _buildProfileWithDecoration(diameter),
-                  ),
-                ),
-              ],
-            );
-          }),
-
-          // Scroll Down + arrow animation
-          Positioned(
-            bottom: 20,
-            child: InkWell(
-              onTap: widget.onScrollDown,
-              borderRadius: BorderRadius.circular(16),
-              child: SlideTransition(
-                position: _offsetAnimation,
-                child: Column(
-                  children: const [
-                    Text(
-                      "Scroll Down",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black54,
-                        fontWeight: FontWeight.w500,
-                      ),
+          // Scroll Down — use Align + SizedBox so animated child has explicit size
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: InkWell(
+                onTap: widget.onScrollDown,
+                borderRadius: BorderRadius.circular(16),
+                child: SizedBox(
+                  width: 140,
+                  height: 56,
+                  child: SlideTransition(
+                    position: _offsetAnimation,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Text(
+                          "Scroll Down",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.black54,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Icon(Icons.keyboard_arrow_down, size: 32, color: Colors.black54),
+                      ],
                     ),
-                    Icon(Icons.keyboard_arrow_down,
-                        size: 32, color: Colors.black54),
-                  ],
+                  ),
                 ),
               ),
             ),

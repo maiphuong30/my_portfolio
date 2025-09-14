@@ -98,7 +98,7 @@ class AboutSection extends StatelessWidget {
                                 label: "Dog lover 🐕"),
                             _FunFact(
                                 icon: FontAwesomeIcons.code,
-                                label: "Night owl coder 🌙"),
+                                label: "Night sleeper, day coder 😴"),
                             _FunFact(
                                 icon: FontAwesomeIcons.palette,
                                 label: "Art collector 🎨"),
@@ -172,7 +172,7 @@ class AboutSection extends StatelessWidget {
                                   label: "Dog lover 🐕"),
                               _FunFact(
                                   icon: FontAwesomeIcons.code,
-                                  label: "Night owl coder 🌙"),
+                                  label: "Night sleeper, day coder 😴"),
                               _FunFact(
                                   icon: FontAwesomeIcons.palette,
                                   label: "Art collector 🎨"),
@@ -235,10 +235,10 @@ class AboutSection extends StatelessWidget {
             spacing: 20,
             runSpacing: 20,
             children: const [
-              _StatCard(value: "50+", label: "Projects Completed"),
+              _StatCard(value: "5+", label: "Projects Completed"),
               _StatCard(value: "3+", label: "Years Experience"),
               _StatCard(value: "25+", label: "Happy Clients"),
-              _StatCard(value: "∞", label: "Cups of Coffee"),
+              _StatCard(value: "∞", label: "Cups of Bubble Tea"),
             ],
           ),
         ],
