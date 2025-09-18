@@ -20,10 +20,19 @@ class HomeSection extends StatefulWidget {
 
 class _HomeSectionState extends State<HomeSection>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<Offset> _offsetAnimation;
-  late Animation<Offset> _dot1Animation; // floating dot 1
-  late Animation<Offset> _dot2Animation; // floating dot 2
+  late final AnimationController _controller;
+  late final Animation<Offset> _offsetAnimation;
+  late final Animation<Offset> _dot1Animation; // floating dot 1 (large)
+  late final Animation<Offset> _dot2Animation; // floating dot 2 (large)
+
+  // small bubbles: offsets, opacity and scale (no separate controller)
+  late final Animation<Offset> _dot3Animation;
+  late final Animation<double> _dot3Opacity;
+  late final Animation<double> _dot3Scale;
+
+  late final Animation<Offset> _dot4Animation;
+  late final Animation<double> _dot4Opacity;
+  late final Animation<double> _dot4Scale;
 
   // Gradient colors used for primary button / headline
   static const Color _gradStart = Color(0xFFFF5A9E); // pink-ish
@@ -34,9 +43,10 @@ class _HomeSectionState extends State<HomeSection>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 1),
+      duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
 
+    // Scroll indicator bounce
     _offsetAnimation = Tween<Offset>(
       begin: const Offset(0, 0),
       end: const Offset(0, 0.2), // nhún xuống 20%
@@ -54,6 +64,38 @@ class _HomeSectionState extends State<HomeSection>
       begin: const Offset(0, 0.06),
       end: const Offset(0, -0.06),
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    // small bubble 3: subtle vertical + horizontal shift, opacity pulse and scale
+    _dot3Animation = Tween<Offset>(
+      begin: const Offset(-0.02, 0.0),
+      end: const Offset(0.02, -0.02),
+    ).animate(CurvedAnimation(parent: _controller, curve: const Interval(0.0, 1.0, curve: Curves.easeInOut)));
+
+    _dot3Opacity = Tween<double>(begin: 0.55, end: 0.18).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 1.0, curve: Curves.easeInOut),
+    ));
+
+    _dot3Scale = Tween<double>(begin: 0.92, end: 1.06).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 1.0, curve: Curves.easeInOut),
+    ));
+
+    // small bubble 4: phase offset for variety
+    _dot4Animation = Tween<Offset>(
+      begin: const Offset(0.02, 0.02),
+      end: const Offset(-0.02, 0.0),
+    ).animate(CurvedAnimation(parent: _controller, curve: const Interval(0.2, 1.0, curve: Curves.easeInOut)));
+
+    _dot4Opacity = Tween<double>(begin: 0.48, end: 0.12).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.2, 1.0, curve: Curves.easeInOut),
+    ));
+
+    _dot4Scale = Tween<double>(begin: 0.88, end: 1.02).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.2, 1.0, curve: Curves.easeInOut),
+    ));
   }
 
   @override
@@ -230,6 +272,7 @@ class _HomeSectionState extends State<HomeSection>
       width: diameter,
       height: diameter,
       child: Stack(
+        clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
           // radial glow behind profile
@@ -327,6 +370,83 @@ class _HomeSectionState extends State<HomeSection>
               ),
             ),
           ),
+
+          // Small bubble 3 (top-left, subtler)
+          Positioned(
+            top: -diameter * 0.04,
+            left: -diameter * 0.06,
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) {
+                // convert fractional offset to pixel offset relative to diameter
+                final off = _dot3Animation.value;
+                final dx = off.dx * diameter * 0.6;
+                final dy = off.dy * diameter * 0.6;
+                return Transform.translate(
+                  offset: Offset(dx, dy),
+                  child: Opacity(
+                    opacity: _dot3Opacity.value,
+                    child: Transform.scale(
+                      scale: _dot3Scale.value,
+                      child: Container(
+                        width: diameter * 0.07,
+                        height: diameter * 0.07,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(colors: [_gradStart.withOpacity(0.85), _gradEnd.withOpacity(0.65)]),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: _gradStart.withOpacity(0.18),
+                              blurRadius: 6,
+                              spreadRadius: 0.6,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Small bubble 4 (bottom-right, subtler)
+          Positioned(
+            bottom: -diameter * 0.05,
+            right: -diameter * 0.06,
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) {
+                final off = _dot4Animation.value;
+                final dx = off.dx * diameter * 0.6;
+                final dy = off.dy * diameter * 0.6;
+                return Transform.translate(
+                  offset: Offset(dx, dy),
+                  child: Opacity(
+                    opacity: _dot4Opacity.value,
+                    child: Transform.scale(
+                      scale: _dot4Scale.value,
+                      child: Container(
+                        width: diameter * 0.06,
+                        height: diameter * 0.06,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(colors: [_gradEnd.withOpacity(0.75), _gradStart.withOpacity(0.55)]),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: _gradEnd.withOpacity(0.14),
+                              blurRadius: 6,
+                              spreadRadius: 0.4,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -345,8 +465,13 @@ class _HomeSectionState extends State<HomeSection>
             kToolbarHeight;
     final double containerHeight = deviceHeight.clamp(360.0, 1100.0);
 
+    // Height reserved for scroll indicator overlay. This value is added to content bottom padding
+    const double scrollIndicatorHeight = 88.0; // make a bit larger for safe spacing
+
     // small vertical padding on mobile
-    final EdgeInsets contentPadding = EdgeInsets.symmetric(vertical: isMobile ? 36 : 60, horizontal: 24);
+    final double topPadding = isMobile ? 36 : 60;
+    // ensure bottom padding includes scrollIndicatorHeight so content isn't overlapped
+    final EdgeInsets contentPadding = EdgeInsets.fromLTRB(24, topPadding, 24, topPadding + scrollIndicatorHeight,);
 
     // --- BUTTON SIZING FOR MOBILE: ensure two buttons fit on one row ---
     final double horizontalPadding = 24.0; // matches contentPadding horizontal
@@ -468,7 +593,7 @@ class _HomeSectionState extends State<HomeSection>
             ),
           ),
 
-          // Scroll Down — use Align + SizedBox so animated child has explicit size
+          // Scroll Down
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(

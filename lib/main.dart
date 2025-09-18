@@ -4,7 +4,7 @@ import 'firebase_options.dart';
 import 'sections/home_section.dart';
 import 'sections/about_section.dart';
 import 'sections/skills_section.dart';
-import 'sections/projects_section.dart';
+//import 'sections/projects_section.dart';
 import 'sections/contact_section.dart';
 
 void main() async {
@@ -113,7 +113,7 @@ class _PortfolioHomeState extends State<PortfolioHome> {
             ),
             AboutSection(key: aboutKey),
             SkillsSection(key: skillsKey),
-            ProjectsSection(key: projectsKey),
+            //ProjectsSection(key: projectsKey),
             ContactSection(key: contactKey),
 
             // <-- Footer inserted here -->
@@ -168,7 +168,7 @@ class PortfolioAppBar extends StatelessWidget implements PreferredSizeWidget {
                     _NavItem(title: "Home", onTap: () => onMenuTap("Home")),
                     _NavItem(title: "About", onTap: () => onMenuTap("About")),
                     _NavItem(title: "Skills", onTap: () => onMenuTap("Skills")),
-                    _NavItem(title: "Projects", onTap: () => onMenuTap("Projects")),
+                    //_NavItem(title: "Projects", onTap: () => onMenuTap("Projects")),
                     _NavItem(title: "Contact", onTap: () => onMenuTap("Contact")),
                     const SizedBox(width: 16),
                   ],
@@ -195,7 +195,7 @@ class PortfolioDrawer extends StatelessWidget {
           _DrawerItem(title: "Home", onTap: () => onMenuTap("Home")),
           _DrawerItem(title: "About", onTap: () => onMenuTap("About")),
           _DrawerItem(title: "Skills", onTap: () => onMenuTap("Skills")),
-          _DrawerItem(title: "Projects", onTap: () => onMenuTap("Projects")),
+          //_DrawerItem(title: "Projects", onTap: () => onMenuTap("Projects")),
           _DrawerItem(title: "Contact", onTap: () => onMenuTap("Contact")),
         ],
       ),
