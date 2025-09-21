@@ -522,7 +522,7 @@ class _HomeSectionState extends State<HomeSection>
                                 SizedBox(
                                   width: buttonWidth,
                                   child: _buildPrimaryButton(
-                                    "View My Work",
+                                    "Learn About Me",
                                     widget.onViewWork,
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                                   ),
@@ -568,7 +568,7 @@ class _HomeSectionState extends State<HomeSection>
                                 const SizedBox(height: 32),
                                 Row(
                                   children: [
-                                    _buildPrimaryButton("View My Work", widget.onViewWork),
+                                    _buildPrimaryButton("Learn About Me", widget.onViewWork),
                                     const SizedBox(width: 16),
                                     _buildOutlineButton("Get in touch", widget.onContact),
                                   ],

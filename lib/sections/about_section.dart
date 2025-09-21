@@ -209,7 +209,7 @@ class _AboutSectionState extends State<AboutSection>
   @override
   Widget build(BuildContext context) {
     const funFacts = [
-      {'icon': FontAwesomeIcons.mugHot, 'text': 'Bubble tea addict 🧋', 'color': Colors.orange},
+      {'icon': FontAwesomeIcons.mugHot, 'text': 'Coffee addict ☕', 'color': Colors.orange},
       {'icon': FontAwesomeIcons.heart, 'text': 'Dog lover 🐕', 'color': Colors.pink},
       {'icon': FontAwesomeIcons.code, 'text': 'Night sleeper, day coder 😴', 'color': Colors.blue},
       {'icon': FontAwesomeIcons.palette, 'text': 'Art collector 🎨', 'color': Colors.purple},
@@ -219,7 +219,7 @@ class _AboutSectionState extends State<AboutSection>
       {'number': '50+', 'label': 'Projects Completed'},
       {'number': '3+', 'label': 'Years Experience'},
       {'number': '25+', 'label': 'Happy Clients'},
-      {'number': '∞', 'label': 'Cups of Bubble Tea'},
+      {'number': '∞', 'label': 'Cups of Coffee'},
     ];
 
     return Container(
@@ -426,7 +426,7 @@ class _AboutSectionState extends State<AboutSection>
                 _StatCard(value: "5+", label: "Projects Completed"),
                 _StatCard(value: "3+", label: "Years Experience"),
                 _StatCard(value: "25+", label: "Happy Clients"),
-                _StatCard(value: "∞", label: "Cups of Bubble Tea"),
+                _StatCard(value: "∞", label: "Cups of Coffee"),
               ];
 
               return Wrap(

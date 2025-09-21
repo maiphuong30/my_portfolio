@@ -6,6 +6,7 @@ import 'sections/about_section.dart';
 import 'sections/skills_section.dart';
 //import 'sections/projects_section.dart';
 import 'sections/contact_section.dart';
+import 'widgets/background_music.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -101,26 +102,36 @@ class _PortfolioHomeState extends State<PortfolioHome> {
             break;
         }
       }),
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          children: [
-            HomeSection(
-              key: homeKey,
-              onViewWork: () => scrollToSection(projectsKey),
-              onContact: () => scrollToSection(contactKey),
-              onScrollDown: () => scrollToSection(aboutKey),
-            ),
-            AboutSection(key: aboutKey),
-            SkillsSection(key: skillsKey),
-            //ProjectsSection(key: projectsKey),
-            ContactSection(key: contactKey),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            controller: _scrollController,
+            child: Column(
+              children: [
+                HomeSection(
+                  key: homeKey,
+                  onViewWork: () => scrollToSection(aboutKey),
+                  onContact: () => scrollToSection(contactKey),
+                  onScrollDown: () => scrollToSection(aboutKey),
+                ),
+                AboutSection(key: aboutKey),
+                SkillsSection(key: skillsKey),
+                //ProjectsSection(key: projectsKey),
+                ContactSection(key: contactKey),
 
-            // <-- Footer inserted here -->
-            const SizedBox(height: 24),
-            const Footer(),
-          ],
-        ),
+                // <-- Footer inserted here -->
+                const SizedBox(height: 24),
+                const Footer(),
+              ],
+            ),
+          ),
+          // Positioned floating music control (bottom-right)
+          Positioned(
+            right: 16,
+            bottom: 16,
+            child: const BackgroundMusic(),
+          ),
+        ],
       ),
     );
   }

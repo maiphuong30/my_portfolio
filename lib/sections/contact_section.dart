@@ -411,7 +411,7 @@ class _ContactSectionState extends State<ContactSection> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // left = form (2/3 width)
-                  Expanded(flex: 2, child: buildLeftCard()),
+                  Expanded(flex: 1, child: buildLeftCard()),
                   const SizedBox(width: 28),
                   // right = info column (1)
                   Expanded(flex: 1, child: rightColumn),
