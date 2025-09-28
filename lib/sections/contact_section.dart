@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ContactSection extends StatefulWidget {
   const ContactSection({super.key});
@@ -23,18 +24,61 @@ class _ContactSectionState extends State<ContactSection> {
     super.dispose();
   }
 
-  void _sendMessage() {
-    if (_formKey.currentState?.validate() ?? false) {
-      // TODO: xử lý gửi message (API, email, etc.)
+  // UPDATED: open mail client with prefilled fields
+  Future<void> _sendMessage() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    // <-- Your receiving email -->
+    const String ownerEmail = 'thaidoanmaiphuong@gmail.com';
+
+    final String subject = _subjectCtr.text.trim().isEmpty
+        ? "New Contact Form Message"
+        : _subjectCtr.text.trim();
+
+    final String body = '''
+You received a new message from your website contact form:
+
+Name: ${_nameCtr.text.trim()}
+Email: ${_emailCtr.text.trim()}
+
+Message:
+${_messageCtr.text.trim()}
+
+---
+This email was generated from your website contact form.
+''';
+
+    final String encodedSubject = Uri.encodeComponent(subject);
+    final String encodedBody = Uri.encodeComponent(body);
+
+    final Uri emailUri = Uri.parse(
+        "mailto:$ownerEmail?subject=$encodedSubject&body=$encodedBody");
+
+    try {
+      final bool launched =
+      await launchUrl(emailUri, mode: LaunchMode.externalApplication);
+      if (launched) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Opened mail app.')),
+        );
+        // clear fields
+        _nameCtr.clear();
+        _emailCtr.clear();
+        _subjectCtr.clear();
+        _messageCtr.clear();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open mail app.')),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Message sent (stub).')),
+        SnackBar(content: Text('Error opening mail app: $e')),
       );
-      _nameCtr.clear();
-      _emailCtr.clear();
-      _subjectCtr.clear();
-      _messageCtr.clear();
     }
   }
+
+
 
   Widget _field({
     required String label,
@@ -115,7 +159,7 @@ class _ContactSectionState extends State<ContactSection> {
             // Left card builder (form)
             Widget buildLeftCard() {
               return Container(
-                padding: const EdgeInsets.all(18),
+                padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(14),
@@ -125,7 +169,25 @@ class _ContactSectionState extends State<ContactSection> {
                 child: Form(
                   key: _formKey,
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Tiêu đề form
+                      Row(
+                        children: const [
+                          Icon(Icons.mail_outline, color: Colors.pink),
+                          SizedBox(width: 8),
+                          Text(
+                            "Send me a message",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Name + Email
                       Row(
                         children: [
                           Expanded(
@@ -133,63 +195,94 @@ class _ContactSectionState extends State<ContactSection> {
                               label: "Name *",
                               controller: _nameCtr,
                               hint: "Your name",
-                              validator: (v) => (v?.trim().isEmpty ?? true) ? "Please enter name" : null,
+                              validator: (v) => (v?.trim().isEmpty ?? true)
+                                  ? "Please enter name"
+                                  : null,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: _field(
                               label: "Email *",
                               controller: _emailCtr,
                               hint: "your@email.com",
                               validator: (v) {
-                                if (v == null || v.trim().isEmpty) return "Please enter email";
-                                final re = RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
+                                if (v == null || v.trim().isEmpty) {
+                                  return "Please enter email";
+                                }
+                                final re = RegExp(
+                                    r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
                                 return re.hasMatch(v) ? null : "Invalid email";
                               },
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
+
+                      // Subject
                       _field(
                         label: "Subject *",
                         controller: _subjectCtr,
                         hint: "What's this about?",
-                        validator: (v) => (v?.trim().isEmpty ?? true) ? "Please enter subject" : null,
+                        validator: (v) =>
+                        (v?.trim().isEmpty ?? true) ? "Please enter subject" : null,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
+
+                      // Message
                       _field(
                         label: "Message *",
                         controller: _messageCtr,
                         maxLines: 6,
-                        hint: "Tell me about your project, ideas, or just say hello!",
-                        validator: (v) => (v?.trim().isEmpty ?? true) ? "Please enter message" : null,
+                        hint: "Tell me about your project or just say hi!",
+                        validator: (v) =>
+                        (v?.trim().isEmpty ?? true) ? "Please enter message" : null,
                       ),
-                      const SizedBox(height: 18),
-                      // gradient button built manually
+                      const SizedBox(height: 22),
+
+                      // Send button (theo template với gradient)
                       SizedBox(
                         width: double.infinity,
-                        height: 44,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFff5f8a), Color(0xFF8a2be2)],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
+                        child: ElevatedButton(
+                          onPressed: _sendMessage,
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero, // bỏ padding mặc định để gradient phủ toàn bộ
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            borderRadius: BorderRadius.circular(8),
+                            elevation: 0,
+                            backgroundColor: Colors.transparent, // để gradient hiện
+                            foregroundColor: Colors.white,
                           ),
-                          child: ElevatedButton.icon(
-                            onPressed: _sendMessage,
-                            icon: const Icon(Icons.send_outlined),
-                            label: const Text("Send Message"),
-                            style: ElevatedButton.styleFrom(
-                              elevation: 0,
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8)),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFFF5A9E), Color(0xFF7C3AED)],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              alignment: Alignment.center,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Icon(Icons.send, size: 18, color: Colors.white),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    "Send Message",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -236,7 +329,7 @@ class _ContactSectionState extends State<ContactSection> {
                         Text("Location", style: TextStyle(fontWeight: FontWeight.w700)),
                       ]),
                       const SizedBox(height: 4),
-                      const Text("San Francisco, CA", style: TextStyle(color: Colors.black54)),
+                      const Text("Phu My, Ho Chi Minh City", style: TextStyle(color: Colors.black54)),
                       const SizedBox(height: 12),
                       Row(children: const [
                         Icon(Icons.access_time, size: 18, color: Colors.black54),
@@ -244,7 +337,7 @@ class _ContactSectionState extends State<ContactSection> {
                         Text("Timezone", style: TextStyle(fontWeight: FontWeight.w700)),
                       ]),
                       const SizedBox(height: 4),
-                      const Text("PST (UTC-8)", style: TextStyle(color: Colors.black54)),
+                      const Text("ICT (UTC+7)", style: TextStyle(color: Colors.black54)),
                       const SizedBox(height: 12),
                       Row(children: const [
                         Icon(Icons.coffee, size: 18, color: Colors.black54),
