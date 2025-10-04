@@ -24,11 +24,19 @@ class _ContactSectionState extends State<ContactSection> {
     super.dispose();
   }
 
+  Future<void> _launchLink(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not launch $url')),
+      );
+    }
+  }
+
   // UPDATED: open mail client with prefilled fields
   Future<void> _sendMessage() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    // <-- Your receiving email -->
     const String ownerEmail = 'thaidoanmaiphuong@gmail.com';
 
     final String subject = _subjectCtr.text.trim().isEmpty
@@ -61,7 +69,6 @@ This email was generated from your website contact form.
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Opened mail app.')),
         );
-        // clear fields
         _nameCtr.clear();
         _emailCtr.clear();
         _subjectCtr.clear();
@@ -77,8 +84,6 @@ This email was generated from your website contact form.
       );
     }
   }
-
-
 
   Widget _field({
     required String label,
@@ -247,12 +252,12 @@ This email was generated from your website contact form.
                         child: ElevatedButton(
                           onPressed: _sendMessage,
                           style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.zero, // bỏ padding mặc định để gradient phủ toàn bộ
+                            padding: EdgeInsets.zero,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                             elevation: 0,
-                            backgroundColor: Colors.transparent, // để gradient hiện
+                            backgroundColor: Colors.transparent,
                             foregroundColor: Colors.white,
                           ),
                           child: Ink(
@@ -364,97 +369,81 @@ This email was generated from your website contact form.
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Find me online", style: TextStyle(fontWeight: FontWeight.w700)),
+                      const Text("Find me online", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                       const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: [
-                          SizedBox(
-                            width: 220,
+                      // Responsive grid: 2 per row on wide, 1 per row on narrow
+                      LayoutBuilder(builder: (context, cstr) {
+                        final double max = cstr.maxWidth;
+                        // spacing between items
+                        const double spacing = 12;
+                        // if we consider 2 columns, each width:
+                        final bool twoCol = max >= 480;
+                        final double itemWidth = twoCol ? (max - spacing) / 2 : max;
+
+                        Widget socialButton({
+                          required IconData icon,
+                          required String title,
+                          required String subtitle,
+                          required VoidCallback onTap,
+                        }) {
+                          return SizedBox(
+                            width: itemWidth,
                             child: OutlinedButton(
-                              onPressed: () {},
+                              onPressed: onTap,
                               style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 18),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 side: BorderSide(color: Colors.grey.shade200),
                               ),
                               child: Column(
-                                children: const [
-                                  Icon(Icons.code, size: 22),
-                                  SizedBox(height: 6),
-                                  Text("GitHub", style: TextStyle(fontWeight: FontWeight.w700)),
-                                  SizedBox(height: 4),
-                                  Text("Check out my code", style: TextStyle(fontSize: 12)),
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(icon, size: 28, color: Colors.black87),
+                                  const SizedBox(height: 8),
+                                  Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+                                  const SizedBox(height: 4),
+                                  Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey[600]), textAlign: TextAlign.center),
                                 ],
                               ),
                             ),
-                          ),
-                          SizedBox(
-                            width: 220,
-                            child: OutlinedButton(
-                              onPressed: () {},
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 18),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                side: BorderSide(color: Colors.grey.shade200),
-                              ),
-                              child: Column(
-                                children: const [
-                                  Icon(Icons.work, size: 22),
-                                  SizedBox(height: 6),
-                                  Text("LinkedIn", style: TextStyle(fontWeight: FontWeight.w700)),
-                                  SizedBox(height: 4),
-                                  Text("Let's connect professionally", style: TextStyle(fontSize: 12)),
-                                ],
-                              ),
+                          );
+                        }
+
+                        return Wrap(
+                          spacing: spacing,
+                          runSpacing: spacing,
+                          children: [
+                            socialButton(
+                              icon: Icons.code,
+                              title: "GitHub",
+                              subtitle: "Check out my code",
+                              onTap: () => _launchLink("https://github.com/maiphuong30"),
                             ),
-                          ),
-                          SizedBox(
-                            width: 220,
-                            child: OutlinedButton(
-                              onPressed: () {},
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 18),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                side: BorderSide(color: Colors.grey.shade200),
-                              ),
-                              child: Column(
-                                children: const [
-                                  Icon(Icons.chat_bubble_outline, size: 22),
-                                  SizedBox(height: 6),
-                                  Text("Twitter", style: TextStyle(fontWeight: FontWeight.w700)),
-                                  SizedBox(height: 4),
-                                  Text("Follow my journey", style: TextStyle(fontSize: 12)),
-                                ],
-                              ),
+                            socialButton(
+                              icon: Icons.work,
+                              title: "LinkedIn",
+                              subtitle: "Let's connect professionally",
+                              onTap: () => _launchLink("https://www.linkedin.com/in/thaidoanmaiphuong"),
                             ),
-                          ),
-                          SizedBox(
-                            width: 220,
-                            child: OutlinedButton(
-                              onPressed: () {},
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 18),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                side: BorderSide(color: Colors.grey.shade200),
-                              ),
-                              child: Column(
-                                children: const [
-                                  Icon(Icons.email_outlined, size: 22),
-                                  SizedBox(height: 6),
-                                  Text("Email", style: TextStyle(fontWeight: FontWeight.w700)),
-                                  SizedBox(height: 4),
-                                  Text("Send me an email", style: TextStyle(fontSize: 12)),
-                                ],
-                              ),
+                            socialButton(
+                              icon: Icons.chat_bubble_outline,
+                              title: "Instagram",
+                              subtitle: "Follow my journey",
+                              onTap: () => _launchLink("https://www.instagram.com/maiphuong30.12.2000/"),
                             ),
-                          ),
-                        ],
-                      ),
+                            socialButton(
+                              icon: Icons.email_outlined,
+                              title: "Email",
+                              subtitle: "Send me an email",
+                              onTap: () => _launchLink("mailto:thaidoanmaiphuong@gmail.com"),
+                            ),
+                          ],
+                        );
+                      }),
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 18),
 
                 // Coffee Chat box (pink)
@@ -484,7 +473,26 @@ This email was generated from your website contact form.
                       ),
                       const SizedBox(height: 12),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          const messengerUrl = "https://m.me/maiphuong30"; // 👈 thay username Messenger
+                          const facebookUrl = "https://www.facebook.com/maiphuong30"; // 👈 link profile fallback
+
+                          final messengerUri = Uri.parse(messengerUrl);
+                          final facebookUri = Uri.parse(facebookUrl);
+
+                          try {
+                            final launched = await launchUrl(
+                              messengerUri,
+                              mode: LaunchMode.externalApplication,
+                            );
+                            if (!launched) {
+                              await launchUrl(facebookUri, mode: LaunchMode.externalApplication);
+                            }
+                          } catch (e) {
+                            // fallback luôn nếu lỗi
+                            await launchUrl(facebookUri, mode: LaunchMode.externalApplication);
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.black87,
@@ -503,15 +511,12 @@ This email was generated from your website contact form.
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // left = form (2/3 width)
                   Expanded(flex: 1, child: buildLeftCard()),
                   const SizedBox(width: 28),
-                  // right = info column (1)
                   Expanded(flex: 1, child: rightColumn),
                 ],
               );
             } else {
-              // mobile: stacked
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -522,7 +527,6 @@ This email was generated from your website contact form.
               );
             }
           }),
-          // NOTE: footer removed — page ends here
         ],
       ),
     );
