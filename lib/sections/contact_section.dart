@@ -474,8 +474,8 @@ This email was generated from your website contact form.
                       const SizedBox(height: 12),
                       ElevatedButton(
                         onPressed: () async {
-                          const messengerUrl = "https://m.me/maiphuong30"; // 👈 thay username Messenger
-                          const facebookUrl = "https://www.facebook.com/maiphuong30"; // 👈 link profile fallback
+                          const messengerUrl = "https://m.me/thaidoanmaiphuong";
+                          const facebookUrl = "https://www.facebook.com/thaidoanmaiphuong";
 
                           final messengerUri = Uri.parse(messengerUrl);
                           final facebookUri = Uri.parse(facebookUrl);
