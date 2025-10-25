@@ -2,55 +2,38 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/icon_mapper.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../localization/translations.dart';
 
 class SkillsSection extends StatelessWidget {
   const SkillsSection({super.key});
 
   static const _featureList = [
-    {
-      "icon": "smartphone_outlined",
-      "title": "Mobile-First Design",
-      "desc": "Creating responsive experiences that work beautifully on all devices"
-    },
-    {
-      "icon": "public",
-      "title": "Web Performance",
-      "desc": "Optimizing for speed, accessibility, and user experience"
-    },
-    {
-      "icon": "flash_on",
-      "title": "Rapid Prototyping",
-      "desc": "Quick iteration from concept to working prototype"
-    },
-    {
-      "icon": "favorite_border",
-      "title": "User-Centered Design",
-      "desc": "Putting user needs and emotions at the center of design decisions"
-    },
+    {"icon": "smartphone_outlined", "titleKey": "feature_mobile_title", "descKey": "feature_mobile_desc"},
+    {"icon": "public", "titleKey": "feature_web_title", "descKey": "feature_web_desc"},
+    {"icon": "flash_on", "titleKey": "feature_prototype_title", "descKey": "feature_prototype_desc"},
+    {"icon": "favorite_border", "titleKey": "feature_user_title", "descKey": "feature_user_desc"},
   ];
 
   @override
   Widget build(BuildContext context) {
     final accent = Colors.purple.shade700;
 
+    String t(String key) => AppTranslations.text(key, Localizations.localeOf(context).languageCode);
     // Realtime stream cho skill_groups
     final streamSkillGroups =
     FirebaseFirestore.instance.collection('skill_groups').snapshots();
-
-    // Realtime stream cho certificates
     final streamCertificates =
     FirebaseFirestore.instance.collection('certificates').snapshots();
 
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: streamSkillGroups,
       builder: (context, skillSnap) {
-        // handle errors / loading
         if (skillSnap.hasError) {
           return Container(
             color: Colors.grey[50],
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 28),
-            child: Center(child: Text('Error loading skills: ${skillSnap.error}')),
+            child: Center(child: Text('${t("error_loading_skills")}: ${skillSnap.error}')),
           );
         }
 
@@ -98,33 +81,33 @@ class SkillsSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // small pill
+              // badge pill
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.black12,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text("My Skills"),
+                child: Text(t('skills_badge')),
               ),
               const SizedBox(height: 18),
-              const Text(
-                "What I bring to the table ✨",
+              Text(
+                t('skills_title'),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              const SizedBox(
+              SizedBox(
                 width: 800,
                 child: Text(
-                  "A blend of technical expertise and creative vision, backed by continuous learning and certifications.",
+                  t('skills_subtitle'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                  style: const TextStyle(fontSize: 16, color: Colors.black54),
                 ),
               ),
               const SizedBox(height: 36),
 
-              // --- Skill cards row (3 cards on wide screen) ---
+              // Skill cards
               LayoutBuilder(builder: (context, constraints) {
                 final isDesktop = constraints.maxWidth >= 900;
                 if (isDesktop) {
@@ -137,7 +120,7 @@ class SkillsSection extends StatelessWidget {
                           child: _SkillCard(
                             icon: Icons.code,
                             iconBg: Colors.blue.shade50,
-                            title: "Frontend Development",
+                            title: t('skills_frontend_title'),
                             tags: frontendTags,
                           ),
                         ),
@@ -148,7 +131,7 @@ class SkillsSection extends StatelessWidget {
                           child: _SkillCard(
                             icon: Icons.storage,
                             iconBg: Colors.pink.shade50,
-                            title: "Backend & Tools",
+                            title: t('skills_backend_title'),
                             tags: backendTags,
                           ),
                         ),
@@ -159,7 +142,7 @@ class SkillsSection extends StatelessWidget {
                           child: _SkillCard(
                             icon: Icons.add_chart_outlined,
                             iconBg: Colors.green.shade50,
-                            title: "Data & Automation",
+                            title: t('skills_data_title'),
                             tags: dataTags,
                           ),
                         ),
@@ -167,37 +150,42 @@ class SkillsSection extends StatelessWidget {
                     ],
                   );
                 } else {
-                  // mobile / tablet: stacked with spacing (full width each)
                   return Column(
                     children: [
                       SizedBox(
                         width: double.infinity,
-                        child: _Hoverable(child: _SkillCard(
-                          icon: Icons.code,
-                          iconBg: Colors.blue.shade50,
-                          title: "Frontend Development",
-                          tags: frontendTags,
-                        )),
+                        child: _Hoverable(
+                          child: _SkillCard(
+                            icon: Icons.code,
+                            iconBg: Colors.blue.shade50,
+                            title: t('skills_frontend_title'),
+                            tags: frontendTags,
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
-                        child: _Hoverable(child: _SkillCard(
-                          icon: Icons.color_lens,
-                          iconBg: Colors.pink.shade50,
-                          title: "Design & UX",
-                          tags: dataTags,
-                        )),
+                        child: _Hoverable(
+                          child: _SkillCard(
+                            icon: Icons.color_lens,
+                            iconBg: Colors.pink.shade50,
+                            title: t('skills_design_title'),
+                            tags: dataTags,
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
-                        child: _Hoverable(child: _SkillCard(
-                          icon: Icons.storage,
-                          iconBg: Colors.green.shade50,
-                          title: "Backend & Tools",
-                          tags: backendTags,
-                        )),
+                        child: _Hoverable(
+                          child: _SkillCard(
+                            icon: Icons.storage,
+                            iconBg: Colors.green.shade50,
+                            title: t('skills_backend_title'),
+                            tags: backendTags,
+                          ),
+                        ),
                       ),
                     ],
                   );
@@ -206,15 +194,14 @@ class SkillsSection extends StatelessWidget {
 
               const SizedBox(height: 44),
 
-              // --- Certificates & Achievements header ---
+              // Certificates header
               Row(
-                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Icon(Icons.school_outlined, color: accent),
                   const SizedBox(width: 8),
-                  const Text(
-                    "Certificates & Achievements",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                  Text(
+                    t('certificates_title'),
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
                   ),
                 ],
               ),
@@ -224,20 +211,14 @@ class SkillsSection extends StatelessWidget {
               StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                 stream: streamCertificates,
                 builder: (context, certSnap) {
-                  // nếu lỗi -> hiển thị message nhỏ
                   if (certSnap.hasError) {
-                    return Text('Error loading certificates: ${certSnap.error}',
-                        style: const TextStyle(color: Colors.red));
+                    return Text('${t("error_loading_certificates")}: ${certSnap.error}', style: const TextStyle(color: Colors.red));
                   }
-
-                  // nếu đang load -> spinner nhỏ
                   if (certSnap.connectionState == ConnectionState.waiting) {
                     return const Center(child: SizedBox(width: 28, height: 28, child: CircularProgressIndicator()));
                   }
 
                   final certDocs = certSnap.data?.docs ?? [];
-
-                  // chuyển thành list data
                   final certItems = certDocs.map((d) {
                     final data = d.data();
                     final title = (data['title'] ?? '').toString();
@@ -255,36 +236,25 @@ class SkillsSection extends StatelessWidget {
                     };
                   }).toList();
 
-                  // responsive columns
                   return LayoutBuilder(builder: (context, constraints) {
                     final width = constraints.maxWidth;
-                    int columns = 1;
-                    if (width > 1200) {
-                      columns = 3;
-                    } else if (width > 900) {
-                      columns = 2;
-                    } else {
-                      columns = 1;
-                    }
+                    int columns = width > 1200 ? 3 : width > 900 ? 2 : 1;
 
                     return Wrap(
                       spacing: 20,
                       runSpacing: 20,
-                      children: certItems
-                          .map((c) => SizedBox(
+                      children: certItems.map((c) => SizedBox(
                         width: (constraints.maxWidth - (20 * (columns - 1))) / columns,
                         child: _Hoverable(
-                          // user requested no modal — just a View button inside card
                           child: _CertificateCard(
                             title: c['title'] as String,
                             issuer: c['issuer'] as String,
                             year: c['year'] as String,
                             icon: c['icon'] as IconData,
-                            link: c['link'] as String, // <-- pass link here
+                            link: c['link'] as String,
                           ),
                         ),
-                      ))
-                          .toList(),
+                      )).toList(),
                     );
                   });
                 },
@@ -292,7 +262,7 @@ class SkillsSection extends StatelessWidget {
 
               const SizedBox(height: 40),
 
-              // --- Feature boxes (4) ---
+              // Feature boxes
               Wrap(
                 spacing: 20,
                 runSpacing: 20,
@@ -304,8 +274,8 @@ class SkillsSection extends StatelessWidget {
                     child: _Hoverable(
                       child: _FeatureCard(
                         icon: iconFromString(f['icon'] ?? ''),
-                        title: f['title'] as String,
-                        desc: f['desc'] as String,
+                        title: t(f['titleKey'] ?? ''),
+                        desc: t(f['descKey'] ?? ''),
                       ),
                     ),
                   );
@@ -330,15 +300,15 @@ class SkillsSection extends StatelessWidget {
                     const SizedBox(height: 4),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.star, color: Colors.amber),
-                        SizedBox(width: 8),
+                      children: [
+                        const Icon(Icons.star, color: Colors.amber),
+                        const SizedBox(width: 8),
                         Text(
-                          "Technologies I Love",
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                          t('tech_love_title'),
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                         ),
-                        SizedBox(width: 8),
-                        Icon(Icons.star, color: Colors.amber),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.star, color: Colors.amber),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -346,9 +316,7 @@ class SkillsSection extends StatelessWidget {
                       spacing: 10,
                       runSpacing: 10,
                       alignment: WrapAlignment.center,
-                      children: techTags.map((name) => _Hoverable(
-                        child: _TechChip(name),
-                      )).toList(),
+                      children: techTags.map((name) => _Hoverable(child: _TechChip(name))).toList(),
                     ),
                     const SizedBox(height: 6),
                   ],
@@ -361,6 +329,9 @@ class SkillsSection extends StatelessWidget {
     );
   }
 }
+
+// --- giữ nguyên _Hoverable, _SkillCard, _CertificateCard, _FeatureCard, _TechChip như trước ---
+
 
 // ----------------- Hoverable wrapper -----------------
 class _Hoverable extends StatefulWidget {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../localization/translations.dart';
 
 class ContactSection extends StatefulWidget {
   const ContactSection({super.key});
@@ -24,36 +25,40 @@ class _ContactSectionState extends State<ContactSection> {
     super.dispose();
   }
 
+  // helper lấy chuỗi dịch
+  String t(String key) =>
+      AppTranslations.text(key, Localizations.localeOf(context).languageCode);
+
   Future<void> _launchLink(String url) async {
     final uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not launch $url')),
+        SnackBar(content: Text('${t('contact_couldNotLaunch')} $url')),
       );
     }
   }
 
-  // UPDATED: open mail client with prefilled fields
+  // open mail client with prefilled fields
   Future<void> _sendMessage() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     const String ownerEmail = 'thaidoanmaiphuong@gmail.com';
 
     final String subject = _subjectCtr.text.trim().isEmpty
-        ? "New Contact Form Message"
+        ? t('contact_defaultSubject')
         : _subjectCtr.text.trim();
 
     final String body = '''
-You received a new message from your website contact form:
+${t('contact_newMessage')}:
 
-Name: ${_nameCtr.text.trim()}
-Email: ${_emailCtr.text.trim()}
+${t('contact_name')}: ${_nameCtr.text.trim()}
+${t('contact_email')}: ${_emailCtr.text.trim()}
 
-Message:
+${t('contact_message')}:
 ${_messageCtr.text.trim()}
 
 ---
-This email was generated from your website contact form.
+${t('contact_footerNote')}
 ''';
 
     final String encodedSubject = Uri.encodeComponent(subject);
@@ -67,7 +72,7 @@ This email was generated from your website contact form.
       await launchUrl(emailUri, mode: LaunchMode.externalApplication);
       if (launched) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Opened mail app.')),
+          SnackBar(content: Text(t('contact_mailOpened'))),
         );
         _nameCtr.clear();
         _emailCtr.clear();
@@ -75,12 +80,12 @@ This email was generated from your website contact form.
         _messageCtr.clear();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open mail app.')),
+          SnackBar(content: Text(t('contact_couldNotOpenMail'))),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error opening mail app: $e')),
+        SnackBar(content: Text('${t('contact_errorOpeningMail')}: $e')),
       );
     }
   }
@@ -138,21 +143,21 @@ This email was generated from your website contact form.
               color: Colors.black12,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: const Text("Get In Touch"),
+            child: Text(t('contact_getInTouch')),
           ),
           const SizedBox(height: 14),
-          const Text(
-            "Let's create something amazing together! ✨",
+          Text(
+            t('contact_mainHeading'),
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-          const SizedBox(
+          SizedBox(
             width: 850,
             child: Text(
-              "Have a project in mind? Want to collaborate? Or just want to say hi? I'd love to hear from you!",
+              t('contact_subHeading'),
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.black54),
+              style: const TextStyle(fontSize: 16, color: Colors.black54),
             ),
           ),
           const SizedBox(height: 30),
@@ -169,7 +174,8 @@ This email was generated from your website contact form.
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: Colors.grey.shade200),
-                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+                  boxShadow:
+                  const [BoxShadow(color: Colors.black12, blurRadius: 6)],
                 ),
                 child: Form(
                   key: _formKey,
@@ -178,12 +184,12 @@ This email was generated from your website contact form.
                     children: [
                       // Tiêu đề form
                       Row(
-                        children: const [
-                          Icon(Icons.mail_outline, color: Colors.pink),
-                          SizedBox(width: 8),
+                        children: [
+                          const Icon(Icons.mail_outline, color: Colors.pink),
+                          const SizedBox(width: 8),
                           Text(
-                            "Send me a message",
-                            style: TextStyle(
+                            t('contact_sendMessage'),
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -197,27 +203,29 @@ This email was generated from your website contact form.
                         children: [
                           Expanded(
                             child: _field(
-                              label: "Name *",
+                              label: "${t('contact_name')} *",
                               controller: _nameCtr,
-                              hint: "Your name",
+                              hint: t('contact_hintName'),
                               validator: (v) => (v?.trim().isEmpty ?? true)
-                                  ? "Please enter name"
+                                  ? t('contact_errorName')
                                   : null,
                             ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: _field(
-                              label: "Email *",
+                              label: "${t('contact_email')} *",
                               controller: _emailCtr,
-                              hint: "your@email.com",
+                              hint: t('contact_hintEmail'),
                               validator: (v) {
                                 if (v == null || v.trim().isEmpty) {
-                                  return "Please enter email";
+                                  return t('contact_errorEmailEmpty');
                                 }
                                 final re = RegExp(
                                     r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
-                                return re.hasMatch(v) ? null : "Invalid email";
+                                return re.hasMatch(v)
+                                    ? null
+                                    : t('contact_errorEmailInvalid');
                               },
                             ),
                           ),
@@ -227,22 +235,24 @@ This email was generated from your website contact form.
 
                       // Subject
                       _field(
-                        label: "Subject *",
+                        label: "${t('contact_subject')} *",
                         controller: _subjectCtr,
-                        hint: "What's this about?",
-                        validator: (v) =>
-                        (v?.trim().isEmpty ?? true) ? "Please enter subject" : null,
+                        hint: t('contact_hintSubject'),
+                        validator: (v) => (v?.trim().isEmpty ?? true)
+                            ? t('contact_errorSubject')
+                            : null,
                       ),
                       const SizedBox(height: 16),
 
                       // Message
                       _field(
-                        label: "Message *",
+                        label: "${t('contact_message')} *",
                         controller: _messageCtr,
                         maxLines: 6,
-                        hint: "Tell me about your project or just say hi!",
-                        validator: (v) =>
-                        (v?.trim().isEmpty ?? true) ? "Please enter message" : null,
+                        hint: t('contact_hintMessage'),
+                        validator: (v) => (v?.trim().isEmpty ?? true)
+                            ? t('contact_errorMessage')
+                            : null,
                       ),
                       const SizedBox(height: 22),
 
@@ -275,12 +285,13 @@ This email was generated from your website contact form.
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
-                                  Icon(Icons.send, size: 18, color: Colors.white),
-                                  SizedBox(width: 8),
+                                children: [
+                                  const Icon(Icons.send,
+                                      size: 18, color: Colors.white),
+                                  const SizedBox(width: 8),
                                   Text(
-                                    "Send Message",
-                                    style: TextStyle(
+                                    t('contact_sendButton'),
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 15,
                                       color: Colors.white,
@@ -310,44 +321,56 @@ This email was generated from your website contact form.
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(color: Colors.grey.shade200),
-                    boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+                    boxShadow:
+                    const [BoxShadow(color: Colors.black12, blurRadius: 6)],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        children: const [
-                          Icon(Icons.favorite, color: Colors.pink),
-                          SizedBox(width: 8),
-                          Text("Let's connect!", style: TextStyle(fontWeight: FontWeight.w700)),
+                        children: [
+                          const Icon(Icons.favorite, color: Colors.pink),
+                          const SizedBox(width: 8),
+                          Text(t('contact_connectTitle'),
+                              style:
+                              const TextStyle(fontWeight: FontWeight.w700)),
                         ],
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        "I'm always excited to work on new projects and meet amazing people. Whether you have a project in mind, want to collaborate, or just want to chat about design and development, don't hesitate to reach out!",
-                        style: TextStyle(color: Colors.black54),
+                      Text(
+                        t('contact_connectDesc'),
+                        style: const TextStyle(color: Colors.black54),
                       ),
                       const SizedBox(height: 16),
-                      Row(children: const [
-                        Icon(Icons.location_on_outlined, size: 18, color: Colors.black54),
-                        SizedBox(width: 8),
-                        Text("Location", style: TextStyle(fontWeight: FontWeight.w700)),
+                      Row(children: [
+                        const Icon(Icons.location_on_outlined,
+                            size: 18, color: Colors.black54),
+                        const SizedBox(width: 8),
+                        Text(t('contact_location'),
+                            style:
+                            const TextStyle(fontWeight: FontWeight.w700)),
                       ]),
                       const SizedBox(height: 4),
                       const Text("Phu My, Ho Chi Minh City", style: TextStyle(color: Colors.black54)),
                       const SizedBox(height: 12),
-                      Row(children: const [
-                        Icon(Icons.access_time, size: 18, color: Colors.black54),
-                        SizedBox(width: 8),
-                        Text("Timezone", style: TextStyle(fontWeight: FontWeight.w700)),
+                      Row(children: [
+                        const Icon(Icons.access_time,
+                            size: 18, color: Colors.black54),
+                        const SizedBox(width: 8),
+                        Text(t('contact_timezone'),
+                            style:
+                            const TextStyle(fontWeight: FontWeight.w700)),
                       ]),
                       const SizedBox(height: 4),
                       const Text("ICT (UTC+7)", style: TextStyle(color: Colors.black54)),
                       const SizedBox(height: 12),
-                      Row(children: const [
-                        Icon(Icons.coffee, size: 18, color: Colors.black54),
-                        SizedBox(width: 8),
-                        Text("Best Time", style: TextStyle(fontWeight: FontWeight.w700)),
+                      Row(children: [
+                        const Icon(Icons.coffee,
+                            size: 18, color: Colors.black54),
+                        const SizedBox(width: 8),
+                        Text(t('contact_bestTime'),
+                            style:
+                            const TextStyle(fontWeight: FontWeight.w700)),
                       ]),
                       const SizedBox(height: 4),
                       const Text("9 AM - 6 PM", style: TextStyle(color: Colors.black54)),
@@ -364,12 +387,15 @@ This email was generated from your website contact form.
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.grey.shade200),
-                    boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+                    boxShadow:
+                    const [BoxShadow(color: Colors.black12, blurRadius: 6)],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text("Find me online", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                      Text(t('contact_findMeOnline'),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w700, fontSize: 16)),
                       const SizedBox(height: 12),
                       // Responsive grid: 2 per row on wide, 1 per row on narrow
                       LayoutBuilder(builder: (context, cstr) {
@@ -416,25 +442,25 @@ This email was generated from your website contact form.
                             socialButton(
                               icon: Icons.code,
                               title: "GitHub",
-                              subtitle: "Check out my code",
+                              subtitle: t('contact_githubSubtitle'),
                               onTap: () => _launchLink("https://github.com/maiphuong30"),
                             ),
                             socialButton(
                               icon: Icons.work,
                               title: "LinkedIn",
-                              subtitle: "Let's connect professionally",
+                              subtitle: t('contact_linkedinSubtitle'),
                               onTap: () => _launchLink("https://www.linkedin.com/in/thaidoanmaiphuong"),
                             ),
                             socialButton(
                               icon: Icons.chat_bubble_outline,
                               title: "Instagram",
-                              subtitle: "Follow my journey",
+                              subtitle: t('contact_instagramSubtitle'),
                               onTap: () => _launchLink("https://www.instagram.com/maiphuong30.12.2000/"),
                             ),
                             socialButton(
                               icon: Icons.email_outlined,
                               title: "Email",
-                              subtitle: "Send me an email",
+                              subtitle: t('contact_emailSubtitle'),
                               onTap: () => _launchLink("mailto:thaidoanmaiphuong@gmail.com"),
                             ),
                           ],
@@ -464,12 +490,12 @@ This email was generated from your website contact form.
                     children: [
                       const Icon(Icons.local_cafe, size: 32),
                       const SizedBox(height: 8),
-                      const Text("Coffee Chat?", style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                      Text(t('contact_coffeeChatTitle'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                       const SizedBox(height: 8),
-                      const Text(
-                        "I'm always up for a virtual coffee chat to discuss ideas, share experiences, or just get to know each other better!",
+                      Text(
+                        t('contact_coffeeChatDesc'),
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.black54),
+                        style: const TextStyle(color: Colors.black54),
                       ),
                       const SizedBox(height: 12),
                       ElevatedButton(
@@ -499,7 +525,7 @@ This email was generated from your website contact form.
                           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
-                        child: const Text("Schedule a Chat"),
+                        child: Text(t('contact_scheduleChat')),
                       ),
                     ],
                   ),

@@ -4,32 +4,65 @@ import 'firebase_options.dart';
 import 'sections/home_section.dart';
 import 'sections/about_section.dart';
 import 'sections/skills_section.dart';
-//import 'sections/projects_section.dart';
 import 'sections/contact_section.dart';
 import 'widgets/background_music.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+
+import 'localization/translations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform, // config tự sinh
+    options: DefaultFirebaseOptions.currentPlatform,
   );
   runApp(const PortfolioApp());
 }
 
-class PortfolioApp extends StatelessWidget {
+class PortfolioApp extends StatefulWidget {
   const PortfolioApp({super.key});
+
+  @override
+  State<PortfolioApp> createState() => _PortfolioAppState();
+}
+
+class _PortfolioAppState extends State<PortfolioApp> {
+  Locale _locale = const Locale('en');
+
+  void _toggleLanguage() {
+    setState(() {
+      _locale =
+      _locale.languageCode == 'en' ? const Locale('vi') : const Locale('en');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const PortfolioHome(),
+      locale: _locale,
+      supportedLocales: const [Locale('en'), Locale('vi')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      home: PortfolioHome(onToggleLanguage: _toggleLanguage, locale: _locale),
     );
   }
 }
 
+/// ---------------------------
+/// PortfolioHome (main screen)
+/// ---------------------------
 class PortfolioHome extends StatefulWidget {
-  const PortfolioHome({super.key});
+  final VoidCallback onToggleLanguage;
+  final Locale locale;
+
+  const PortfolioHome({
+    super.key,
+    required this.onToggleLanguage,
+    required this.locale,
+  });
 
   @override
   State<PortfolioHome> createState() => _PortfolioHomeState();
@@ -38,7 +71,6 @@ class PortfolioHome extends StatefulWidget {
 class _PortfolioHomeState extends State<PortfolioHome> {
   final ScrollController _scrollController = ScrollController();
 
-  // Tạo key cho từng section
   final homeKey = GlobalKey();
   final aboutKey = GlobalKey();
   final skillsKey = GlobalKey();
@@ -46,11 +78,8 @@ class _PortfolioHomeState extends State<PortfolioHome> {
   final contactKey = GlobalKey();
 
   void scrollToSection(GlobalKey key, {bool closeDrawer = false}) {
-    if (closeDrawer) {
-      // nếu drawer mở -> đóng trước khi scroll
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
+    if (closeDrawer && Navigator.canPop(context)) {
+      Navigator.pop(context);
     }
     Scrollable.ensureVisible(
       key.currentContext!,
@@ -58,6 +87,9 @@ class _PortfolioHomeState extends State<PortfolioHome> {
       curve: Curves.easeInOut,
     );
   }
+
+  // dùng translations từ file riêng
+  String t(String key) => AppTranslations.text(key, widget.locale.languageCode);
 
   @override
   Widget build(BuildContext context) {
@@ -82,26 +114,34 @@ class _PortfolioHomeState extends State<PortfolioHome> {
               break;
           }
         },
+        onToggleLanguage: widget.onToggleLanguage,
+        locale: widget.locale,
+        t: t,
       ),
-      drawer: PortfolioDrawer(onMenuTap: (menu) {
-        switch (menu) {
-          case "Home":
-            scrollToSection(homeKey, closeDrawer: true);
-            break;
-          case "About":
-            scrollToSection(aboutKey, closeDrawer: true);
-            break;
-          case "Skills":
-            scrollToSection(skillsKey, closeDrawer: true);
-            break;
-          case "Projects":
-            scrollToSection(projectsKey, closeDrawer: true);
-            break;
-          case "Contact":
-            scrollToSection(contactKey, closeDrawer: true);
-            break;
-        }
-      }),
+      drawer: PortfolioDrawer(
+        onMenuTap: (menu) {
+          switch (menu) {
+            case "Home":
+              scrollToSection(homeKey, closeDrawer: true);
+              break;
+            case "About":
+              scrollToSection(aboutKey, closeDrawer: true);
+              break;
+            case "Skills":
+              scrollToSection(skillsKey, closeDrawer: true);
+              break;
+            case "Projects":
+              scrollToSection(projectsKey, closeDrawer: true);
+              break;
+            case "Contact":
+              scrollToSection(contactKey, closeDrawer: true);
+              break;
+          }
+        },
+        locale: widget.locale,
+        t: t,
+        onToggleLanguage: widget.onToggleLanguage, // ✅ thêm
+      ),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -116,16 +156,13 @@ class _PortfolioHomeState extends State<PortfolioHome> {
                 ),
                 AboutSection(key: aboutKey),
                 SkillsSection(key: skillsKey),
-                //ProjectsSection(key: projectsKey),
+                // ProjectsSection(key: projectsKey),
                 ContactSection(key: contactKey),
-
-                // <-- Footer inserted here -->
                 const SizedBox(height: 24),
-                const Footer(),
+                Footer(locale: widget.locale, t: t),
               ],
             ),
           ),
-          // Positioned floating music control (bottom-right)
           Positioned(
             right: 16,
             bottom: 16,
@@ -137,65 +174,91 @@ class _PortfolioHomeState extends State<PortfolioHome> {
   }
 }
 
+/// ---------------------------
+/// AppBar có nút chuyển ngữ
+/// ---------------------------
 class PortfolioAppBar extends StatelessWidget implements PreferredSizeWidget {
   final void Function(String menu) onMenuTap;
+  final VoidCallback onToggleLanguage;
+  final Locale locale;
+  final String Function(String) t;
 
-  const PortfolioAppBar({super.key, required this.onMenuTap});
+  const PortfolioAppBar({
+    super.key,
+    required this.onMenuTap,
+    required this.onToggleLanguage,
+    required this.locale,
+    required this.t,
+  });
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        bool isMobile = constraints.maxWidth < 600;
-
-        return AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          automaticallyImplyLeading: isMobile, // chỉ hiện menu mặc định khi mobile
-          titleSpacing: 10,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+    return LayoutBuilder(builder: (context, constraints) {
+      bool isMobile = constraints.maxWidth < 600;
+      return AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        automaticallyImplyLeading: isMobile,
+        titleSpacing: 10,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: const [
+                Icon(Icons.favorite, color: Colors.pink),
+                SizedBox(width: 8),
+                Text(
+                  "Mai Phuong",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ],
+            ),
+            if (!isMobile)
               Row(
-                children: const [
-                  Icon(Icons.favorite, color: Colors.pink),
-                  SizedBox(width: 8),
-                  Text(
-                    "Mai Phuong",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
+                children: [
+                  _NavItem(title: 'Home', label: t('home'), onTap: () => onMenuTap("Home")),
+                  _NavItem(title: 'About', label: t('about'), onTap: () => onMenuTap("About")),
+                  _NavItem(title: 'Skills', label: t('skills'), onTap: () => onMenuTap("Skills")),
+                  //_NavItem(title: 'Projects', label: t('projects'), onTap: () => onMenuTap("Projects")),
+                  _NavItem(title: 'Contact', label: t('contact'), onTap: () => onMenuTap("Contact")),
+                  const SizedBox(width: 16),
+                  IconButton(
+                    onPressed: onToggleLanguage,
+                    icon: const Icon(Icons.language, color: Colors.black87),
+                    tooltip: locale.languageCode == 'en' ? 'VI' : 'EN',
                   ),
                 ],
               ),
-              if (!isMobile)
-                Row(
-                  children: [
-                    _NavItem(title: "Home", onTap: () => onMenuTap("Home")),
-                    _NavItem(title: "About", onTap: () => onMenuTap("About")),
-                    _NavItem(title: "Skills", onTap: () => onMenuTap("Skills")),
-                    //_NavItem(title: "Projects", onTap: () => onMenuTap("Projects")),
-                    _NavItem(title: "Contact", onTap: () => onMenuTap("Contact")),
-                    const SizedBox(width: 16),
-                  ],
-                ),
-            ],
-          ),
-        );
-      },
-    );
+          ],
+        ),
+      );
+    });
   }
 }
 
+/// ---------------------------
+/// Drawer (mobile menu)
+/// ---------------------------
 class PortfolioDrawer extends StatelessWidget {
   final void Function(String menu) onMenuTap;
+  final Locale locale;
+  final String Function(String) t;
+  final VoidCallback onToggleLanguage; // ✅ thêm
 
-  const PortfolioDrawer({super.key, required this.onMenuTap});
+  const PortfolioDrawer({
+    super.key,
+    required this.onMenuTap,
+    required this.locale,
+    required this.t,
+    required this.onToggleLanguage, // ✅ thêm
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -203,11 +266,20 @@ class PortfolioDrawer extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.only(top: 50),
         children: [
-          _DrawerItem(title: "Home", onTap: () => onMenuTap("Home")),
-          _DrawerItem(title: "About", onTap: () => onMenuTap("About")),
-          _DrawerItem(title: "Skills", onTap: () => onMenuTap("Skills")),
-          //_DrawerItem(title: "Projects", onTap: () => onMenuTap("Projects")),
-          _DrawerItem(title: "Contact", onTap: () => onMenuTap("Contact")),
+          _DrawerItem(title: t('home'), onTap: () => onMenuTap("Home")),
+          _DrawerItem(title: t('about'), onTap: () => onMenuTap("About")),
+          _DrawerItem(title: t('skills'), onTap: () => onMenuTap("Skills")),
+          //_DrawerItem(title: t('projects'), onTap: () => onMenuTap("Projects")),
+          _DrawerItem(title: t('contact'), onTap: () => onMenuTap("Contact")),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.language),
+            title: Text(locale.languageCode == 'en' ? 'Tiếng Việt' : 'English'),
+            onTap: () {
+              Navigator.pop(context); // đóng Drawer
+              onToggleLanguage();     // ✅ đổi ngôn ngữ thực sự
+            },
+          ),
         ],
       ),
     );
@@ -231,9 +303,14 @@ class _DrawerItem extends StatelessWidget {
 
 class _NavItem extends StatelessWidget {
   final String title;
+  final String label;
   final VoidCallback onTap;
 
-  const _NavItem({required this.title, required this.onTap});
+  const _NavItem({
+    required this.title,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -242,7 +319,7 @@ class _NavItem extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Text(
-          title,
+          label,
           style: const TextStyle(
             color: Colors.black,
             fontSize: 16,
@@ -253,32 +330,14 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-class _Section extends StatelessWidget {
-  final String title;
-  final Color color;
-
-  const _Section({super.key, required this.title, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 600,
-      color: color,
-      child: Center(
-        child: Text(
-          title,
-          style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
-  }
-}
-
 /// -------------------------
-/// Footer widget (responsive)
+/// Footer (đa ngữ)
 /// -------------------------
 class Footer extends StatelessWidget {
-  const Footer({super.key});
+  final Locale locale;
+  final String Function(String) t;
+
+  const Footer({super.key, required this.locale, required this.t});
 
   @override
   Widget build(BuildContext context) {
@@ -290,36 +349,26 @@ class Footer extends StatelessWidget {
       child: LayoutBuilder(builder: (context, constraints) {
         final isMobile = constraints.maxWidth < 800;
         if (isMobile) {
-          // stacked, centered
           return Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _leftFooterRow(centered: true),
               const SizedBox(height: 12),
-              Text(
-                "Built with Flutter ✨",
-                style: TextStyle(color: Colors.black54),
-                textAlign: TextAlign.center,
-              ),
+              Text(t('built'), style: const TextStyle(color: Colors.black54)),
               const SizedBox(height: 12),
-              Text("© $year Mai Phuong. All rights reserved.",
-                  style: TextStyle(color: Colors.black54)),
+              Text("© $year Mai Phuong. ${t('rights')}",
+                  style: const TextStyle(color: Colors.black54)),
             ],
           );
         }
 
-        // desktop: three columns
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _leftFooterRow(centered: false),
-            Text(
-              "Built with Flutter ✨",
-              style: TextStyle(color: Colors.black54),
-              textAlign: TextAlign.center,
-            ),
-            Text("© $year Mai Phuong. All rights reserved.",
-                style: TextStyle(color: Colors.black54)),
+            Text(t('built'), style: const TextStyle(color: Colors.black54)),
+            Text("© $year Mai Phuong. ${t('rights')}",
+                style: const TextStyle(color: Colors.black54)),
           ],
         );
       }),
@@ -343,10 +392,6 @@ class Footer extends StatelessWidget {
       ],
     );
 
-    if (centered) {
-      return Center(child: row);
-    } else {
-      return row;
-    }
+    return centered ? Center(child: row) : row;
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../localization/translations.dart';
 
 class AboutSection extends StatefulWidget {
   const AboutSection({super.key});
@@ -23,7 +24,7 @@ class _AboutSectionState extends State<AboutSection>
       duration: const Duration(milliseconds: 3500),
     )..repeat(reverse: true);
 
-    // float: 0 -> -7 -> 0
+    // float: 0 -> -5 -> 0
     _floatAnim = TweenSequence<double>([
       TweenSequenceItem(
         tween:
@@ -120,7 +121,11 @@ class _AboutSectionState extends State<AboutSection>
     double? badgeLeft,
     double badgeBottom = -28,
   }) {
-    // badge widget (animated)
+    // lấy locale hiện tại & hàm dịch
+    final localeCode = Localizations.localeOf(context).languageCode;
+    final t = (String key) => AppTranslations.text(key, localeCode);
+
+    // badge widget (animated) - dùng key dịch
     final badge = AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
@@ -138,11 +143,13 @@ class _AboutSectionState extends State<AboutSection>
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Icon(Icons.circle, color: Colors.green, size: 12),
-                  SizedBox(width: 8),
-                  Text('Currently building something awesome',
-                      style: TextStyle(fontWeight: FontWeight.w500)),
+                children: [
+                  const Icon(Icons.circle, color: Colors.green, size: 12),
+                  const SizedBox(width: 8),
+                  Text(
+                    t('about_currently_building'),
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
                 ],
               ),
             ),
@@ -156,7 +163,6 @@ class _AboutSectionState extends State<AboutSection>
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          // subtle directional shadow similar to template
           BoxShadow(
             color: Colors.black.withOpacity(0.12),
             blurRadius: 24,
@@ -208,18 +214,21 @@ class _AboutSectionState extends State<AboutSection>
 
   @override
   Widget build(BuildContext context) {
-    const funFacts = [
-      {'icon': FontAwesomeIcons.mugHot, 'text': 'Coffee addict ☕', 'color': Colors.orange},
-      {'icon': FontAwesomeIcons.heart, 'text': 'Dog lover 🐕', 'color': Colors.pink},
-      {'icon': FontAwesomeIcons.code, 'text': 'Night sleeper, day coder 😴', 'color': Colors.blue},
-      {'icon': FontAwesomeIcons.palette, 'text': 'Art collector 🎨', 'color': Colors.purple},
+    // Dùng AppTranslations cùng locale hiện tại
+    String t(String key) => AppTranslations.text(key, Localizations.localeOf(context).languageCode);
+
+    final funFacts = [
+      {'icon': FontAwesomeIcons.mugHot, 'text': t('about_fun_fact1'), 'color': Colors.orange},
+      {'icon': FontAwesomeIcons.heart, 'text': t('about_fun_fact2'), 'color': Colors.pink},
+      {'icon': FontAwesomeIcons.code, 'text': t('about_fun_fact3'), 'color': Colors.blue},
+      {'icon': FontAwesomeIcons.palette, 'text': t('about_fun_fact4'), 'color': Colors.purple},
     ];
 
     final stats = [
-      {'number': '50+', 'label': 'Projects Completed'},
-      {'number': '3+', 'label': 'Years Experience'},
-      {'number': '25+', 'label': 'Happy Clients'},
-      {'number': '∞', 'label': 'Cups of Coffee'},
+      {'number': '50+', 'label': t('stat_projects_completed')},
+      {'number': '3+', 'label': t('stat_years_experience')},
+      {'number': '25+', 'label': t('stat_happy_clients')},
+      {'number': '∞', 'label': t('stat_cups_of_coffee')},
     ];
 
     return Container(
@@ -231,22 +240,22 @@ class _AboutSectionState extends State<AboutSection>
           // Title
           Column(
             children: [
-              _badgePill('About Me'),
+              _badgePill(t('about_badge')),
               const SizedBox(height: 12),
-              const Text(
-                'Get to know me better 💫',
-                style: TextStyle(
+              Text(
+                t('about_title'),
+                style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 12),
-              const SizedBox(
+              SizedBox(
                 width: 720,
                 child: Text(
-                  "I'm a creative developer who believes in the power of beautiful design and clean code to create meaningful digital experiences.",
+                  t('about_subtitle'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                  style: const TextStyle(fontSize: 16, color: Colors.black54),
                 ),
               ),
             ],
@@ -262,36 +271,29 @@ class _AboutSectionState extends State<AboutSection>
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "My Story",
-                      style: TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.bold),
+                  Text(
+                    t('about_story_title'),
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  const Text(
-                    "I stumbled into IT rather naturally—no grand plan, no childhood dream of coding. One day I picked the field, studied it, and somehow ended up working in it. Things have gone surprisingly smoothly, as if the universe quietly nudged me along.\n\nI’m not a genius, just an ordinary person putting in small, steady efforts. I spend my days learning on the job, exploring small projects, and occasionally reminding my computer that I know what I’m doing.\n\nOutside work, I enjoy quiet hobbies and experimenting with little tech ideas—sometimes they work, sometimes they don’t, and that’s part of the fun.",
-                    style: TextStyle(color: Colors.black87, height: 1.5),
+                  Text(
+                    t('about_story_text'),
+                    style: const TextStyle(color: Colors.black87, height: 1.5),
                   ),
                   const SizedBox(height: 16),
                   Row(
-                    children: const [
-                      Icon(Icons.location_on_outlined,
-                          size: 18, color: Colors.black54),
-                      SizedBox(width: 4),
-                      Text("Ho Chi Minh City, Viet Nam"),
-                      SizedBox(width: 16),
-                      Icon(Icons.event_available,
-                          size: 18, color: Colors.black54),
-                      SizedBox(width: 4),
-                      Text("Available"),
+                    children: [
+                      const Icon(Icons.location_on_outlined, size: 18, color: Colors.black54),
+                      const SizedBox(width: 4),
+                      Text(t('about_location')),
+                      const SizedBox(width: 16),
+                      const Icon(Icons.event_available, size: 18, color: Colors.black54),
+                      const SizedBox(width: 4),
+                      Text(t('about_available')),
                     ],
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                      "Fun Facts About Me:",
-                      style: TextStyle(
-                          fontWeight: FontWeight.w600)
-                  ),
+                  Text(t('about_fun_facts_title'), style: const TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(height: 12),
 
                   // FUN FACTS GRID (mobile) - 2 columns with spacing and compact tiles
@@ -336,34 +338,23 @@ class _AboutSectionState extends State<AboutSection>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                            "My Story",
-                            style: TextStyle(
-                                fontSize: 22, fontWeight: FontWeight.bold),
-                        ),
+                        Text(t('about_story_title'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 10),
-                        const Text(
-                          "I stumbled into IT rather naturally—no grand plan, no childhood dream of coding. One day I picked the field, studied it, and somehow ended up working in it. Things have gone surprisingly smoothly, as if the universe quietly nudged me along.\n\nI’m not a genius, just an ordinary person putting in small, steady efforts. I spend my days learning on the job, exploring small projects, and occasionally reminding my computer that I know what I’m doing.\n\nOutside work, I enjoy quiet hobbies and experimenting with little tech ideas—sometimes they work, sometimes they don’t, and that’s part of the fun.",
-                          style: TextStyle(color: Colors.black87, height: 1.5),
-                        ),
+                        Text(t('about_story_text'), style: const TextStyle(color: Colors.black87, height: 1.5)),
                         const SizedBox(height: 16),
                         Row(
-                          children: const [
-                            Icon(Icons.location_on_outlined,
-                                size: 18, color: Colors.black54),
-                            SizedBox(width: 4),
-                            Text("Ho Chi Minh City, Viet Nam"),
-                            SizedBox(width: 16),
-                            Icon(Icons.event_available,
-                                size: 18, color: Colors.black54),
-                            SizedBox(width: 4),
-                            Text("Available"),
+                          children: [
+                            const Icon(Icons.location_on_outlined, size: 18, color: Colors.black54),
+                            const SizedBox(width: 4),
+                            Text(t('about_location')),
+                            const SizedBox(width: 16),
+                            const Icon(Icons.event_available, size: 18, color: Colors.black54),
+                            const SizedBox(width: 4),
+                            Text(t('about_available')),
                           ],
                         ),
                         const SizedBox(height: 24),
-                        const Text(
-                            "Fun Facts About Me:",
-                            style: TextStyle(fontWeight: FontWeight.w600)),
+                        Text(t('about_fun_facts_title'), style: const TextStyle(fontWeight: FontWeight.w600)),
                         const SizedBox(height: 12),
 
                         // FUN FACTS GRID (desktop) - 2 columns, regular size
@@ -421,13 +412,10 @@ class _AboutSectionState extends State<AboutSection>
               const spacing = 8.0;
               final itemWidth = (maxWidth - (columns - 1) * spacing) / columns;
 
-              // danh sách card (giữ const để tận dụng compile-time const)
-              final statCards = const [
-                _StatCard(value: "5+", label: "Projects Completed"),
-                _StatCard(value: "3+", label: "Years Experience"),
-                _StatCard(value: "25+", label: "Happy Clients"),
-                _StatCard(value: "∞", label: "Cups of Coffee"),
-              ];
+              // tạo danh sách card (không const vì dùng t())
+              final statCards = stats
+                  .map((s) => _StatCard(value: s['number'] as String, label: s['label'] as String))
+                  .toList();
 
               return Wrap(
                 alignment: WrapAlignment.center,

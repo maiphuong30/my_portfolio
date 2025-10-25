@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../localization/translations.dart';
 
 class HomeSection extends StatefulWidget {
   final VoidCallback onViewWork;   // scroll tới Projects
@@ -105,6 +106,10 @@ class _HomeSectionState extends State<HomeSection>
   }
 
   Widget _buildFollowMe({bool center = false}) {
+    // lấy mã ngôn ngữ hiện tại
+    final localeCode = Localizations.localeOf(context).languageCode;
+    final followMeLabel = AppTranslations.text('follow_me', localeCode);
+
     return Padding(
       padding: const EdgeInsets.only(top: 24),
       child: SizedBox(
@@ -114,9 +119,9 @@ class _HomeSectionState extends State<HomeSection>
           center ? MainAxisAlignment.center : MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text(
-              "Follow Me",
-              style: TextStyle(
+            Text(
+              followMeLabel,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
@@ -454,6 +459,9 @@ class _HomeSectionState extends State<HomeSection>
 
   @override
   Widget build(BuildContext context) {
+    // dùng AppTranslations cùng locale hiện tại
+    String t(String key) => AppTranslations.text(key, Localizations.localeOf(context).languageCode);
+
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
     const double profileFraction = 0.4;
@@ -505,14 +513,15 @@ class _HomeSectionState extends State<HomeSection>
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            badgePill("Available for new projects"),
+                            // dùng key dịch cho badge
+                            badgePill(t('available_for_projects')),
                             const SizedBox(height: 12),
-                            gradientHeadline("Hi, I'm Phương 👋", fontSize: 28),
+                            gradientHeadline(t('hi_im_phuong'), fontSize: 28),
                             const SizedBox(height: 16),
-                            const Text(
-                              "A developer who loves creating beautiful, functional experiences—and occasionally convincing my code to behave.",
+                            Text(
+                              t('short_intro_home'),
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 16, color: Colors.black54),
+                              style: const TextStyle(fontSize: 16, color: Colors.black54),
                             ),
                             const SizedBox(height: 24),
                             // <-- REPLACED: use Row with fixed button widths so both buttons stay on one line on mobile -->
@@ -522,7 +531,7 @@ class _HomeSectionState extends State<HomeSection>
                                 SizedBox(
                                   width: buttonWidth,
                                   child: _buildPrimaryButton(
-                                    "Learn About Me",
+                                    t('learn_about_me'),
                                     widget.onViewWork,
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                                   ),
@@ -531,7 +540,7 @@ class _HomeSectionState extends State<HomeSection>
                                 SizedBox(
                                   width: buttonWidth,
                                   child: _buildOutlineButton(
-                                    "Get in touch",
+                                    t('get_in_touch'),
                                     widget.onContact,
                                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                                   ),
@@ -557,20 +566,20 @@ class _HomeSectionState extends State<HomeSection>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                badgePill("Available for new projects"),
+                                badgePill(t('available_for_projects')),
                                 const SizedBox(height: 12),
-                                gradientHeadline("Hi, I'm Phương 👋", fontSize: 36),
+                                gradientHeadline(t('hi_im_phuong'), fontSize: 36),
                                 const SizedBox(height: 16),
-                                const Text(
-                                  "A developer who loves creating beautiful, functional experiences—and occasionally convincing my code to behave.",
-                                  style: TextStyle(fontSize: 18, color: Colors.black54),
+                                Text(
+                                  t('short_intro_home'),
+                                  style: const TextStyle(fontSize: 18, color: Colors.black54),
                                 ),
                                 const SizedBox(height: 32),
                                 Row(
                                   children: [
-                                    _buildPrimaryButton("Learn About Me", widget.onViewWork),
+                                    _buildPrimaryButton(t('learn_about_me'), widget.onViewWork),
                                     const SizedBox(width: 16),
-                                    _buildOutlineButton("Get in touch", widget.onContact),
+                                    _buildOutlineButton(t('get_in_touch'), widget.onContact),
                                   ],
                                 ),
                                 _buildFollowMe(),
@@ -608,16 +617,16 @@ class _HomeSectionState extends State<HomeSection>
                     position: _offsetAnimation,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: const [
+                      children: [
                         Text(
-                          "Scroll Down",
-                          style: TextStyle(
+                          t('scroll_down'),
+                          style: const TextStyle(
                             fontSize: 16,
                             color: Colors.black54,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Icon(Icons.keyboard_arrow_down, size: 32, color: Colors.black54),
+                        const Icon(Icons.keyboard_arrow_down, size: 32, color: Colors.black54),
                       ],
                     ),
                   ),
