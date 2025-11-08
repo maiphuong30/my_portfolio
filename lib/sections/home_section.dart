@@ -66,7 +66,7 @@ class _HomeSectionState extends State<HomeSection>
       end: const Offset(0, -0.06),
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
-    // small bubble 3: subtle vertical + horizontal shift, opacity pulse and scale
+    // small bubble 3
     _dot3Animation = Tween<Offset>(
       begin: const Offset(-0.02, 0.0),
       end: const Offset(0.02, -0.02),
@@ -82,7 +82,7 @@ class _HomeSectionState extends State<HomeSection>
       curve: const Interval(0.0, 1.0, curve: Curves.easeInOut),
     ));
 
-    // small bubble 4: phase offset for variety
+    // small bubble 4
     _dot4Animation = Tween<Offset>(
       begin: const Offset(0.02, 0.02),
       end: const Offset(-0.02, 0.0),
@@ -106,6 +106,10 @@ class _HomeSectionState extends State<HomeSection>
   }
 
   Widget _buildFollowMe({bool center = false}) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final textColor = cs.onSurface.withOpacity(0.8);
+
     // lấy mã ngôn ngữ hiện tại
     final localeCode = Localizations.localeOf(context).languageCode;
     final followMeLabel = AppTranslations.text('follow_me', localeCode);
@@ -113,7 +117,7 @@ class _HomeSectionState extends State<HomeSection>
     return Padding(
       padding: const EdgeInsets.only(top: 24),
       child: SizedBox(
-        width: double.infinity, // full width
+        width: double.infinity,
         child: Row(
           mainAxisAlignment:
           center ? MainAxisAlignment.center : MainAxisAlignment.start,
@@ -121,10 +125,9 @@ class _HomeSectionState extends State<HomeSection>
           children: [
             Text(
               followMeLabel,
-              style: const TextStyle(
-                fontSize: 16,
+              style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: textColor,
               ),
             ),
             const SizedBox(width: 12),
@@ -135,7 +138,8 @@ class _HomeSectionState extends State<HomeSection>
                   throw Exception('Could not launch $url');
                 }
               },
-              icon: const Icon(Icons.facebook, color: Colors.blue),
+              icon: Icon(Icons.facebook, color: cs.primary),
+              tooltip: 'Facebook',
             ),
             IconButton(
               onPressed: () async {
@@ -144,7 +148,8 @@ class _HomeSectionState extends State<HomeSection>
                   throw Exception('Could not launch $url');
                 }
               },
-              icon: FaIcon(FontAwesomeIcons.github, color: Colors.black),
+              icon: FaIcon(FontAwesomeIcons.github, color: cs.onSurface),
+              tooltip: 'GitHub',
             ),
             IconButton(
               onPressed: () async {
@@ -153,7 +158,8 @@ class _HomeSectionState extends State<HomeSection>
                   throw Exception('Could not launch $url');
                 }
               },
-              icon: const FaIcon(FontAwesomeIcons.squareLinkedin, color: Colors.blueAccent),
+              icon: FaIcon(FontAwesomeIcons.linkedin, color: cs.secondary),
+              tooltip: 'LinkedIn',
             ),
           ],
         ),
@@ -181,43 +187,57 @@ class _HomeSectionState extends State<HomeSection>
         style: TextStyle(
           fontSize: fontSize,
           fontWeight: FontWeight.bold,
-          color: Colors.white, // replaced by shader
+          // màu sẽ bị shader override, nhưng để hợp theme khi shader lỗi:
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
     );
   }
 
-  /// Badge similar to template: small pill with icon and text
+  /// Badge pill (dùng màu theo theme, viền nhạt)
   Widget badgePill(String text) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
+    final bg = Color.alphaBlend(
+      (_gradStart).withOpacity(0.12),
+      cs.surface,
+    );
+    final border = cs.outlineVariant.withOpacity(0.6);
+    final iconColor = _gradStart;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        // subtle gradient background for the pill
         gradient: LinearGradient(
-          colors: [_gradStart.withOpacity(0.14), _gradEnd.withOpacity(0.10)],
+          colors: [bg, Color.alphaBlend(_gradEnd.withOpacity(0.08), cs.surface)],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.auto_awesome, size: 16, color: Color(0xFFFF5A9E)),
+          Icon(Icons.auto_awesome, size: 16, color: iconColor),
           const SizedBox(width: 8),
           Text(
             text,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: cs.onSurface,
+            ),
           ),
         ],
       ),
     );
   }
 
-  /// Build primary gradient button similar to template.
+  /// Primary gradient button (giữ gradient, shadow tinh chỉnh theo theme)
   Widget _buildPrimaryButton(String text, VoidCallback onPressed,
       {EdgeInsetsGeometry? padding}) {
+    final theme = Theme.of(context);
     final pad = padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 14);
     return ElevatedButton(
       onPressed: onPressed,
@@ -225,8 +245,10 @@ class _HomeSectionState extends State<HomeSection>
         padding: EdgeInsets.zero,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         elevation: 6,
-        shadowColor: _gradEnd.withOpacity(0.45),
-        backgroundColor: Colors.transparent, // gradient will paint
+        shadowColor: theme.brightness == Brightness.dark
+            ? _gradEnd.withOpacity(0.35)
+            : _gradEnd.withOpacity(0.45),
+        backgroundColor: Colors.transparent,
       ),
       child: Ink(
         decoration: BoxDecoration(
@@ -238,40 +260,56 @@ class _HomeSectionState extends State<HomeSection>
           alignment: Alignment.center,
           child: Text(
             text,
-            style: const TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.w600),
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ),
     );
   }
 
+  /// Outline button theo theme
   Widget _buildOutlineButton(String text, VoidCallback onPressed,
       {EdgeInsetsGeometry? padding}) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final pad = padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 14);
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
         padding: EdgeInsets.zero,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        side: BorderSide(color: _gradStart, width: 2),
+        side: BorderSide(color: cs.primary, width: 2),
       ),
       child: Container(
         padding: pad,
         alignment: Alignment.center,
         child: Text(
           text,
-          style: TextStyle(fontSize: 16, color: _gradStart, fontWeight: FontWeight.w600),
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: cs.primary,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
   }
 
-  /// Build profile with decorative background and floating dots.
-  /// diameter: requested size for whole widget (profile circle area)
+  /// Profile + decoration (màu viền/đổ bóng theo theme)
   Widget _buildProfileWithDecoration(double diameter) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
     final bgSize = diameter * 1.16;
     final imageSize = diameter * 0.88;
     final borderWidth = diameter * 0.05;
+
+    // viền: sáng dùng trắng, tối dùng surfaceVariant
+    final borderColor = theme.brightness == Brightness.dark
+        ? cs.surfaceVariant
+        : Colors.white;
 
     return SizedBox(
       width: diameter,
@@ -280,7 +318,7 @@ class _HomeSectionState extends State<HomeSection>
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
-          // radial glow behind profile
+          // radial glow behind profile (pha vào nền theo theme)
           Container(
             width: bgSize,
             height: bgSize,
@@ -290,25 +328,27 @@ class _HomeSectionState extends State<HomeSection>
                 center: const Alignment(-0.2, -0.2),
                 radius: 0.9,
                 colors: [
-                  _gradStart.withOpacity(0.20),
-                  _gradEnd.withOpacity(0.12),
-                  Colors.transparent,
+                  _gradStart.withOpacity(0.18),
+                  _gradEnd.withOpacity(0.10),
+                  cs.surface.withOpacity(0.0),
                 ],
                 stops: const [0.0, 0.45, 1.0],
               ),
             ),
           ),
 
-          // main profile with white border + shadow
+          // main profile with theme border + shadow
           Container(
             width: imageSize,
             height: imageSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: borderWidth),
+              border: Border.all(color: borderColor, width: borderWidth),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.20),
+                  color: theme.brightness == Brightness.dark
+                      ? Colors.black.withOpacity(0.5)
+                      : Colors.black.withOpacity(0.2),
                   blurRadius: 16,
                   offset: const Offset(0, 8),
                 ),
@@ -319,10 +359,8 @@ class _HomeSectionState extends State<HomeSection>
                 "assets/images/IMG_MYPHOTO.jpg",
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Container(
-                  color: Colors.grey.shade200,
-                  child: const Center(
-                    child: Icon(Icons.person, size: 48, color: Colors.grey),
-                  ),
+                  color: cs.surfaceVariant,
+                  child: Icon(Icons.person, size: 48, color: cs.onSurfaceVariant),
                 ),
               ),
             ),
@@ -376,14 +414,13 @@ class _HomeSectionState extends State<HomeSection>
             ),
           ),
 
-          // Small bubble 3 (top-left, subtler)
+          // Small bubble 3
           Positioned(
             top: -diameter * 0.04,
             left: -diameter * 0.06,
             child: AnimatedBuilder(
               animation: _controller,
               builder: (context, _) {
-                // convert fractional offset to pixel offset relative to diameter
                 final off = _dot3Animation.value;
                 final dx = off.dx * diameter * 0.6;
                 final dy = off.dy * diameter * 0.6;
@@ -415,7 +452,7 @@ class _HomeSectionState extends State<HomeSection>
             ),
           ),
 
-          // Small bubble 4 (bottom-right, subtler)
+          // Small bubble 4
           Positioned(
             bottom: -diameter * 0.05,
             right: -diameter * 0.06,
@@ -462,39 +499,45 @@ class _HomeSectionState extends State<HomeSection>
     // dùng AppTranslations cùng locale hiện tại
     String t(String key) => AppTranslations.text(key, Localizations.localeOf(context).languageCode);
 
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
     const double profileFraction = 0.4;
 
-    // subtract AppBar height (kToolbarHeight) so HomeSection fits the visible area below AppBar
+    // subtract AppBar height (kToolbarHeight)
     final double deviceHeight =
         MediaQuery.of(context).size.height -
             MediaQuery.of(context).padding.vertical -
             kToolbarHeight;
     final double containerHeight = deviceHeight.clamp(360.0, 1100.0);
 
-    // Height reserved for scroll indicator overlay. This value is added to content bottom padding
-    const double scrollIndicatorHeight = 88.0; // make a bit larger for safe spacing
+    const double scrollIndicatorHeight = 88.0;
 
-    // small vertical padding on mobile
     final double topPadding = isMobile ? 36 : 60;
-    // ensure bottom padding includes scrollIndicatorHeight so content isn't overlapped
     final EdgeInsets contentPadding = EdgeInsets.fromLTRB(24, topPadding, 24, topPadding + scrollIndicatorHeight,);
 
-    // --- BUTTON SIZING FOR MOBILE: ensure two buttons fit on one row ---
-    final double horizontalPadding = 24.0; // matches contentPadding horizontal
+    final double horizontalPadding = 24.0;
     const double gapBetweenButtons = 12.0;
     final double computedButtonWidth = (screenWidth - horizontalPadding * 2 - gapBetweenButtons) / 2;
-    const double buttonMinWidth = 120.0; // avoid too small buttons
+    const double buttonMinWidth = 120.0;
     final double buttonWidth = computedButtonWidth < buttonMinWidth ? buttonMinWidth : computedButtonWidth;
+
+    // màu nền section: theo theme
+    final sectionBg = cs.surface;
+
+    // màu chữ chính/phụ
+    final primaryText = cs.onSurface;
+    final mutedText = cs.onSurface.withOpacity(0.6);
 
     return Container(
       height: containerHeight,
-      color: Colors.blue[50],
+      color: sectionBg,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Bounded scrollable area (height = containerHeight)
+          // Bounded scrollable area
           SizedBox(
             height: containerHeight,
             child: SingleChildScrollView(
@@ -513,7 +556,6 @@ class _HomeSectionState extends State<HomeSection>
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // dùng key dịch cho badge
                             badgePill(t('available_for_projects')),
                             const SizedBox(height: 12),
                             gradientHeadline(t('hi_im_phuong'), fontSize: 28),
@@ -521,10 +563,12 @@ class _HomeSectionState extends State<HomeSection>
                             Text(
                               t('short_intro_home'),
                               textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 16, color: Colors.black54),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: mutedText,
+                                fontSize: 16,
+                              ),
                             ),
                             const SizedBox(height: 24),
-                            // <-- REPLACED: use Row with fixed button widths so both buttons stay on one line on mobile -->
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -572,7 +616,10 @@ class _HomeSectionState extends State<HomeSection>
                                 const SizedBox(height: 16),
                                 Text(
                                   t('short_intro_home'),
-                                  style: const TextStyle(fontSize: 18, color: Colors.black54),
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: mutedText,
+                                    fontSize: 18,
+                                  ),
                                 ),
                                 const SizedBox(height: 32),
                                 Row(
@@ -620,13 +667,13 @@ class _HomeSectionState extends State<HomeSection>
                       children: [
                         Text(
                           t('scroll_down'),
-                          style: const TextStyle(
+                          style: theme.textTheme.bodyMedium?.copyWith(
                             fontSize: 16,
-                            color: Colors.black54,
+                            color: mutedText,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const Icon(Icons.keyboard_arrow_down, size: 32, color: Colors.black54),
+                        Icon(Icons.keyboard_arrow_down, size: 32, color: mutedText),
                       ],
                     ),
                   ),

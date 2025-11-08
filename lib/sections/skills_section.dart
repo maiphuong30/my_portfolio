@@ -16,7 +16,8 @@ class SkillsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = Colors.purple.shade700;
+    final theme = Theme.of(context);
+    final accent = theme.colorScheme.secondary;
 
     String t(String key) => AppTranslations.text(key, Localizations.localeOf(context).languageCode);
     // Realtime stream cho skill_groups
@@ -25,12 +26,17 @@ class SkillsSection extends StatelessWidget {
     final streamCertificates =
     FirebaseFirestore.instance.collection('certificates').snapshots();
 
+    Color cardBgColor() => theme.cardColor;
+    Color chipBgColor() => theme.brightness == Brightness.light ? Colors.grey.shade100 : Colors.grey.shade800;
+    Color chipTextColor() => theme.textTheme.bodyLarge!.color!;
+    Color subtitleColor() => theme.textTheme.bodyMedium!.color!.withOpacity(0.7);
+
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: streamSkillGroups,
       builder: (context, skillSnap) {
         if (skillSnap.hasError) {
           return Container(
-            color: Colors.grey[50],
+            color: theme.scaffoldBackgroundColor,
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 28),
             child: Center(child: Text('${t("error_loading_skills")}: ${skillSnap.error}')),
@@ -39,7 +45,7 @@ class SkillsSection extends StatelessWidget {
 
         if (skillSnap.connectionState == ConnectionState.waiting) {
           return Container(
-            color: Colors.grey[50],
+            color: theme.scaffoldBackgroundColor,
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 28),
             child: const Center(child: CircularProgressIndicator()),
@@ -62,20 +68,15 @@ class SkillsSection extends StatelessWidget {
                 .map((e) => e?.toString() ?? '')
                 .where((s) => s.isNotEmpty)
                 .toList();
-            if (id == 'frontend') {
-              frontendTags = tags;
-            } else if (id == 'data') {
-              dataTags = tags;
-            } else if (id == 'backend') {
-              backendTags = tags;
-            } else if (id == 'techchip') {
-              techTags = tags;
-            }
+            if (id == 'frontend') frontendTags = tags;
+            else if (id == 'data') dataTags = tags;
+            else if (id == 'backend') backendTags = tags;
+            else if (id == 'techchip') techTags = tags;
           }
         }
 
         return Container(
-          color: Colors.grey[50],
+          color: theme.scaffoldBackgroundColor,
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 28),
           child: Column(
@@ -85,7 +86,7 @@ class SkillsSection extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.black12,
+                  color: theme.brightness == Brightness.light ? Colors.black12 : Colors.white10,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(t('skills_badge')),
@@ -102,7 +103,7 @@ class SkillsSection extends StatelessWidget {
                 child: Text(
                   t('skills_subtitle'),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16, color: Colors.black54),
+                  style: TextStyle(fontSize: 16, color: subtitleColor()),
                 ),
               ),
               const SizedBox(height: 36),
@@ -122,6 +123,9 @@ class SkillsSection extends StatelessWidget {
                             iconBg: Colors.blue.shade50,
                             title: t('skills_frontend_title'),
                             tags: frontendTags,
+                            cardBgColor: cardBgColor(),
+                            chipBgColor: chipBgColor(),
+                            chipTextColor: chipTextColor(),
                           ),
                         ),
                       ),
@@ -133,6 +137,9 @@ class SkillsSection extends StatelessWidget {
                             iconBg: Colors.pink.shade50,
                             title: t('skills_backend_title'),
                             tags: backendTags,
+                            cardBgColor: cardBgColor(),
+                            chipBgColor: chipBgColor(),
+                            chipTextColor: chipTextColor(),
                           ),
                         ),
                       ),
@@ -144,6 +151,9 @@ class SkillsSection extends StatelessWidget {
                             iconBg: Colors.green.shade50,
                             title: t('skills_data_title'),
                             tags: dataTags,
+                            cardBgColor: cardBgColor(),
+                            chipBgColor: chipBgColor(),
+                            chipTextColor: chipTextColor(),
                           ),
                         ),
                       ),
@@ -160,6 +170,9 @@ class SkillsSection extends StatelessWidget {
                             iconBg: Colors.blue.shade50,
                             title: t('skills_frontend_title'),
                             tags: frontendTags,
+                            cardBgColor: cardBgColor(),
+                            chipBgColor: chipBgColor(),
+                            chipTextColor: chipTextColor(),
                           ),
                         ),
                       ),
@@ -172,6 +185,9 @@ class SkillsSection extends StatelessWidget {
                             iconBg: Colors.pink.shade50,
                             title: t('skills_design_title'),
                             tags: dataTags,
+                            cardBgColor: cardBgColor(),
+                            chipBgColor: chipBgColor(),
+                            chipTextColor: chipTextColor(),
                           ),
                         ),
                       ),
@@ -184,6 +200,9 @@ class SkillsSection extends StatelessWidget {
                             iconBg: Colors.green.shade50,
                             title: t('skills_backend_title'),
                             tags: backendTags,
+                            cardBgColor: cardBgColor(),
+                            chipBgColor: chipBgColor(),
+                            chipTextColor: chipTextColor(),
                           ),
                         ),
                       ),
@@ -252,6 +271,7 @@ class SkillsSection extends StatelessWidget {
                             year: c['year'] as String,
                             icon: c['icon'] as IconData,
                             link: c['link'] as String,
+                            cardBgColor: cardBgColor(),
                           ),
                         ),
                       )).toList(),
@@ -276,6 +296,8 @@ class SkillsSection extends StatelessWidget {
                         icon: iconFromString(f['icon'] ?? ''),
                         title: t(f['titleKey'] ?? ''),
                         desc: t(f['descKey'] ?? ''),
+                        cardBgColor: cardBgColor(),
+                        textColor: theme.textTheme.bodyLarge!.color!,
                       ),
                     ),
                   );
@@ -290,7 +312,7 @@ class SkillsSection extends StatelessWidget {
                 padding: const EdgeInsets.all(22),
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBgColor(),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.grey.shade200),
                   boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
@@ -316,7 +338,7 @@ class SkillsSection extends StatelessWidget {
                       spacing: 10,
                       runSpacing: 10,
                       alignment: WrapAlignment.center,
-                      children: techTags.map((name) => _Hoverable(child: _TechChip(name))).toList(),
+                      children: techTags.map((name) => _Hoverable(child: _TechChip(name, chipBgColor(), chipTextColor()))).toList(),
                     ),
                     const SizedBox(height: 6),
                   ],
@@ -329,9 +351,6 @@ class SkillsSection extends StatelessWidget {
     );
   }
 }
-
-// --- giữ nguyên _Hoverable, _SkillCard, _CertificateCard, _FeatureCard, _TechChip như trước ---
-
 
 // ----------------- Hoverable wrapper -----------------
 class _Hoverable extends StatefulWidget {
@@ -355,7 +374,6 @@ class _HoverableState extends State<_Hoverable> {
 
   @override
   Widget build(BuildContext context) {
-    // on web/desktop, show mouse cursor; on mobile, basic
     final cursor = widget.onTap != null ? SystemMouseCursors.click : SystemMouseCursors.basic;
 
     return MouseRegion(
@@ -384,36 +402,38 @@ class _HoverableState extends State<_Hoverable> {
   }
 }
 
-// ----------------- small widgets -----------------
-
+// ----------------- SkillCard -----------------
 class _SkillCard extends StatelessWidget {
   final IconData icon;
   final Color iconBg;
   final String title;
   final List<String> tags;
+  final Color cardBgColor;
+  final Color chipBgColor;
+  final Color chipTextColor;
 
   const _SkillCard({
     required this.icon,
     required this.iconBg,
     required this.title,
     required this.tags,
+    required this.cardBgColor,
+    required this.chipBgColor,
+    required this.chipTextColor,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      // card style similar to design: white bg, light border, rounded
       padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
       margin: const EdgeInsets.only(top: 0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBgColor,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.grey.shade200),
-        // shadow moved to _Hoverable
       ),
       child: Column(
         children: [
-          // icon circle
           CircleAvatar(
             backgroundColor: iconBg,
             radius: 26,
@@ -434,13 +454,13 @@ class _SkillCard extends StatelessWidget {
                 .map((t) => Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: chipBgColor,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.grey.shade200),
               ),
               child: Text(
                 t,
-                style: const TextStyle(fontSize: 13, color: Colors.black87),
+                style: TextStyle(fontSize: 13, color: chipTextColor),
               ),
             ))
                 .toList(),
@@ -451,12 +471,14 @@ class _SkillCard extends StatelessWidget {
   }
 }
 
+// ----------------- CertificateCard -----------------
 class _CertificateCard extends StatelessWidget {
   final String title;
   final String issuer;
   final String year;
   final IconData icon;
-  final String link; // NEW: link to certificate (may be empty)
+  final String link;
+  final Color cardBgColor;
 
   const _CertificateCard({
     required this.title,
@@ -464,23 +486,28 @@ class _CertificateCard extends StatelessWidget {
     required this.year,
     required this.icon,
     this.link = '',
+    required this.cardBgColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final titleStyle = theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700) ?? TextStyle(fontWeight: FontWeight.w700);
+    final subtitleStyle = theme.textTheme.bodyMedium?.copyWith(color: theme.textTheme.bodyMedium!.color!.withOpacity(0.7))
+        ?? TextStyle(color: theme.textTheme.bodyMedium!.color!.withOpacity(0.7));
+    final yearStyle = theme.textTheme.bodySmall?.copyWith(color: theme.textTheme.bodySmall!.color!.withOpacity(0.7))
+        ?? TextStyle(color: theme.textTheme.bodySmall!.color!.withOpacity(0.7));
+
     return Container(
-      // similar card to design
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBgColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
-        // shadow moved to _Hoverable
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // top row: icon + text
           Row(
             children: [
               Container(
@@ -497,15 +524,15 @@ class _CertificateCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                    Text(title, style: titleStyle),
                     const SizedBox(height: 6),
-                    Text(issuer, style: const TextStyle(color: Colors.black54)),
+                    Text(issuer, style: subtitleStyle),
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        const Icon(Icons.calendar_today, size: 14, color: Colors.black45),
+                        Icon(Icons.calendar_today, size: 14, color: yearStyle.color),
                         const SizedBox(width: 6),
-                        Text(year, style: const TextStyle(color: Colors.black45)),
+                        Text(year, style: yearStyle),
                       ],
                     )
                   ],
@@ -513,8 +540,6 @@ class _CertificateCard extends StatelessWidget {
               ),
             ],
           ),
-
-          // spacer + action button (if link provided)
           if (link.isNotEmpty) ...[
             const SizedBox(height: 12),
             Row(
@@ -524,22 +549,19 @@ class _CertificateCard extends StatelessWidget {
                   onPressed: () async {
                     final uri = Uri.tryParse(link);
                     if (uri == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Link không hợp lệ')));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Link không hợp lệ')));
                       return;
                     }
                     try {
                       if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Không thể mở link')));
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Không thể mở link')));
                       }
                     } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Không thể mở link')));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Không thể mở link')));
                     }
                   },
-                  icon: const Icon(Icons.open_in_new),
-                  label: const Text('View'),
+                  icon: const Icon(Icons.open_in_new), // giữ màu cũ
+                  label: const Text('View'),            // giữ màu cũ
                 ),
               ],
             ),
@@ -550,15 +572,20 @@ class _CertificateCard extends StatelessWidget {
   }
 }
 
+// ----------------- FeatureCard -----------------
 class _FeatureCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String desc;
+  final Color cardBgColor;
+  final Color textColor;
 
   const _FeatureCard({
     required this.icon,
     required this.title,
     required this.desc,
+    required this.cardBgColor,
+    required this.textColor,
   });
 
   @override
@@ -566,42 +593,41 @@ class _FeatureCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 22, 18, 22),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardBgColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
-        // shadow moved to _Hoverable
       ),
       child: Column(
         children: [
           Icon(icon, size: 28, color: Colors.purple),
           const SizedBox(height: 12),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+          Text(title, style: TextStyle(fontWeight: FontWeight.w700, color: textColor)),
           const SizedBox(height: 10),
-          Text(
-            desc,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.black54),
-          ),
+          Text(desc, textAlign: TextAlign.center, style: TextStyle(color: textColor.withOpacity(0.7))),
         ],
       ),
     );
   }
 }
 
+// ----------------- TechChip -----------------
 class _TechChip extends StatelessWidget {
   final String label;
-  const _TechChip(this.label);
+  final Color bgColor;
+  final Color textColor;
+
+  const _TechChip(this.label, this.bgColor, this.textColor);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: bgColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
       ),
-      child: Text(label, style: const TextStyle(fontSize: 13)),
+      child: Text(label, style: TextStyle(fontSize: 13, color: textColor)),
     );
   }
 }

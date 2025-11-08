@@ -24,7 +24,6 @@ class _AboutSectionState extends State<AboutSection>
       duration: const Duration(milliseconds: 3500),
     )..repeat(reverse: true);
 
-    // float: 0 -> -5 -> 0
     _floatAnim = TweenSequence<double>([
       TweenSequenceItem(
         tween:
@@ -38,7 +37,6 @@ class _AboutSectionState extends State<AboutSection>
       ),
     ]).animate(_controller);
 
-    // pulse: 1.0 -> 1.05 -> 1.0
     _pulseAnim = TweenSequence<double>([
       TweenSequenceItem(
         tween:
@@ -59,8 +57,6 @@ class _AboutSectionState extends State<AboutSection>
     super.dispose();
   }
 
-  // Fun fact tile used in grid
-  // compact = true -> smaller sizes for mobile
   Widget _funFactTile({
     required IconData icon,
     required String label,
@@ -76,6 +72,9 @@ class _AboutSectionState extends State<AboutSection>
       vertical: compact ? 6 : 8,
     );
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white70 : Colors.black87;
+
     return Container(
       padding: padding,
       child: Row(
@@ -84,7 +83,7 @@ class _AboutSectionState extends State<AboutSection>
             width: boxSize,
             height: boxSize,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
+              color: color.withOpacity(0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: iconSize),
@@ -93,7 +92,7 @@ class _AboutSectionState extends State<AboutSection>
           Expanded(
             child: Text(
               label,
-              style: TextStyle(fontSize: fontSize),
+              style: TextStyle(fontSize: fontSize, color: textColor),
             ),
           ),
         ],
@@ -102,30 +101,41 @@ class _AboutSectionState extends State<AboutSection>
   }
 
   Widget _badgePill(String text) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        color: Colors.white,
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 6)],
+        color: isDark ? Colors.grey[850] : Colors.white,
+        border: Border.all(color: isDark ? Colors.grey[700]! : Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black54 : Colors.black12,
+            blurRadius: 6,
+          )
+        ],
       ),
-      child: Text(text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: isDark ? Colors.white : Colors.black,
+        ),
+      ),
     );
   }
 
-  // Image + badge combined (badge is animated)
-  // imageHeight: requested image height
   Widget _imageWithFloatingBadge({
     required double imageHeight,
     double? badgeLeft,
     double badgeBottom = -28,
   }) {
-    // lấy locale hiện tại & hàm dịch
     final localeCode = Localizations.localeOf(context).languageCode;
     final t = (String key) => AppTranslations.text(key, localeCode);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // badge widget (animated) - dùng key dịch
     final badge = AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
@@ -136,10 +146,16 @@ class _AboutSectionState extends State<AboutSection>
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDark ? Colors.grey[850] : Colors.white,
                 borderRadius: BorderRadius.circular(14),
-                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 12)],
-                border: Border.all(color: Colors.grey.shade200),
+                boxShadow: [
+                  BoxShadow(
+                    color: isDark ? Colors.black54 : Colors.black12,
+                    blurRadius: 12,
+                  )
+                ],
+                border: Border.all(
+                    color: isDark ? Colors.grey[700]! : Colors.grey.shade200),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -148,7 +164,10 @@ class _AboutSectionState extends State<AboutSection>
                   const SizedBox(width: 8),
                   Text(
                     t('about_currently_building'),
-                    style: const TextStyle(fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.white70 : Colors.black87,
+                    ),
                   ),
                 ],
               ),
@@ -158,26 +177,26 @@ class _AboutSectionState extends State<AboutSection>
       },
     );
 
-    // image container with shadow (no animation)
     final imageWithShadow = Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.12),
+            color: isDark ? Colors.black54 : Colors.black26,
             blurRadius: 24,
             offset: const Offset(0, 12),
-            spreadRadius: 0,
           ),
         ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Image.asset(
-          'assets/images/testImg.png',
+          'assets/images/IMG_MYDOG.jpg',
           width: double.infinity,
           height: imageHeight,
           fit: BoxFit.cover,
+          color: isDark ? Colors.black.withOpacity(0.05) : null,
+          colorBlendMode: isDark ? BlendMode.darken : null,
         ),
       ),
     );
@@ -186,10 +205,7 @@ class _AboutSectionState extends State<AboutSection>
       clipBehavior: Clip.none,
       alignment: Alignment.center,
       children: [
-        // Static image with shadow
         imageWithShadow,
-
-        // overlay gradient for better contrast
         Positioned.fill(
           child: Container(
             decoration: BoxDecoration(
@@ -197,12 +213,14 @@ class _AboutSectionState extends State<AboutSection>
               gradient: LinearGradient(
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
-                colors: [Colors.black.withOpacity(0.20), Colors.transparent],
+                colors: [
+                  Colors.black.withOpacity(isDark ? 0.4 : 0.2),
+                  Colors.transparent
+                ],
               ),
             ),
           ),
         ),
-
         Positioned(
           left: badgeLeft,
           bottom: badgeBottom,
@@ -214,8 +232,14 @@ class _AboutSectionState extends State<AboutSection>
 
   @override
   Widget build(BuildContext context) {
-    // Dùng AppTranslations cùng locale hiện tại
-    String t(String key) => AppTranslations.text(key, Localizations.localeOf(context).languageCode);
+    String t(String key) =>
+        AppTranslations.text(key, Localizations.localeOf(context).languageCode);
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? Colors.white : Colors.black;
+    final textSecondary = isDark ? Colors.white70 : Colors.black54;
+    final bgColor = isDark ? Colors.black : Colors.grey[50];
+    final cardColor = isDark ? Colors.grey[900] : Colors.white;
 
     final funFacts = [
       {'icon': FontAwesomeIcons.mugHot, 'text': t('about_fun_fact1'), 'color': Colors.orange},
@@ -232,21 +256,21 @@ class _AboutSectionState extends State<AboutSection>
     ];
 
     return Container(
-      color: Colors.grey[50],
+      color: bgColor,
       padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Title
           Column(
             children: [
               _badgePill(t('about_badge')),
               const SizedBox(height: 12),
               Text(
                 t('about_title'),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
+                  color: textPrimary,
                 ),
               ),
               const SizedBox(height: 12),
@@ -255,53 +279,58 @@ class _AboutSectionState extends State<AboutSection>
                 child: Text(
                   t('about_subtitle'),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16, color: Colors.black54),
+                  style: TextStyle(fontSize: 16, color: textSecondary),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 40),
-
-          // Main grid: left text / right image
           LayoutBuilder(builder: (context, constraints) {
             final isMobile = constraints.maxWidth < 800;
 
+            final storyTitleStyle = TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: textPrimary,
+            );
+            final storyTextStyle = TextStyle(
+              color: textSecondary,
+              height: 1.5,
+            );
+
             if (isMobile) {
-              // Mobile: ảnh dưới fun facts
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    t('about_story_title'),
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
+                  Text(t('about_story_title'), style: storyTitleStyle),
                   const SizedBox(height: 10),
-                  Text(
-                    t('about_story_text'),
-                    style: const TextStyle(color: Colors.black87, height: 1.5),
-                  ),
+                  Text(t('about_story_text'), style: storyTextStyle),
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined, size: 18, color: Colors.black54),
+                      Icon(Icons.location_on_outlined, size: 18, color: textSecondary),
                       const SizedBox(width: 4),
-                      Text(t('about_location')),
+                      Text(t('about_location'), style: TextStyle(color: textPrimary)),
                       const SizedBox(width: 16),
-                      const Icon(Icons.event_available, size: 18, color: Colors.black54),
+                      Icon(Icons.event_available, size: 18, color: textSecondary),
                       const SizedBox(width: 4),
-                      Text(t('about_available')),
+                      Text(t('about_available'), style: TextStyle(color: textPrimary)),
                     ],
                   ),
                   const SizedBox(height: 24),
-                  Text(t('about_fun_facts_title'), style: const TextStyle(fontWeight: FontWeight.w600)),
+                  Text(
+                    t('about_fun_facts_title'),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: textPrimary,
+                    ),
+                  ),
                   const SizedBox(height: 12),
-
-                  // FUN FACTS GRID (mobile) - 2 columns with spacing and compact tiles
                   LayoutBuilder(builder: (ctx, box) {
                     final columns = 2;
                     const gap = 12.0;
-                    final itemWidth = (box.maxWidth - (columns - 1) * gap) / columns;
-                    final compact = true; // mobile -> compact
+                    final itemWidth =
+                        (box.maxWidth - (columns - 1) * gap) / columns;
                     return Wrap(
                       spacing: gap,
                       runSpacing: gap,
@@ -312,24 +341,18 @@ class _AboutSectionState extends State<AboutSection>
                             icon: f['icon'] as IconData,
                             label: f['text'] as String,
                             color: f['color'] as Color,
-                            compact: compact,
+                            compact: true,
                           ),
                         );
                       }).toList(),
                     );
                   }),
-
                   const SizedBox(height: 20),
-
-                  // Image + badge (badge floats) — image height smaller on mobile
                   _imageWithFloatingBadge(imageHeight: 220, badgeLeft: null, badgeBottom: -28),
-
-                  // extra spacing to account for badge overlap
                   const SizedBox(height: 36),
                 ],
               );
             } else {
-              // Desktop: ảnh bên phải
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -338,31 +361,35 @@ class _AboutSectionState extends State<AboutSection>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(t('about_story_title'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                        Text(t('about_story_title'), style: storyTitleStyle),
                         const SizedBox(height: 10),
-                        Text(t('about_story_text'), style: const TextStyle(color: Colors.black87, height: 1.5)),
+                        Text(t('about_story_text'), style: storyTextStyle),
                         const SizedBox(height: 16),
                         Row(
                           children: [
-                            const Icon(Icons.location_on_outlined, size: 18, color: Colors.black54),
+                            Icon(Icons.location_on_outlined, size: 18, color: textSecondary),
                             const SizedBox(width: 4),
-                            Text(t('about_location')),
+                            Text(t('about_location'), style: TextStyle(color: textPrimary)),
                             const SizedBox(width: 16),
-                            const Icon(Icons.event_available, size: 18, color: Colors.black54),
+                            Icon(Icons.event_available, size: 18, color: textSecondary),
                             const SizedBox(width: 4),
-                            Text(t('about_available')),
+                            Text(t('about_available'), style: TextStyle(color: textPrimary)),
                           ],
                         ),
                         const SizedBox(height: 24),
-                        Text(t('about_fun_facts_title'), style: const TextStyle(fontWeight: FontWeight.w600)),
+                        Text(
+                          t('about_fun_facts_title'),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: textPrimary,
+                          ),
+                        ),
                         const SizedBox(height: 12),
-
-                        // FUN FACTS GRID (desktop) - 2 columns, regular size
                         LayoutBuilder(builder: (ctx, box) {
                           final columns = 2;
                           const gap = 12.0;
-                          final itemWidth = (box.maxWidth - (columns - 1) * gap) / columns;
-                          final compact = false; // desktop -> normal size
+                          final itemWidth =
+                              (box.maxWidth - (columns - 1) * gap) / columns;
                           return Wrap(
                             spacing: gap,
                             runSpacing: gap,
@@ -373,7 +400,7 @@ class _AboutSectionState extends State<AboutSection>
                                   icon: f['icon'] as IconData,
                                   label: f['text'] as String,
                                   color: f['color'] as Color,
-                                  compact: compact,
+                                  compact: false,
                                 ),
                               );
                             }).toList(),
@@ -382,16 +409,13 @@ class _AboutSectionState extends State<AboutSection>
                       ],
                     ),
                   ),
-
                   const SizedBox(width: 40),
                   Expanded(
                     flex: 2,
                     child: Column(
                       children: [
-                        // Using same unified container: image + badge (badgeLeft provided)
-                        _imageWithFloatingBadge(imageHeight: 360, badgeLeft: 12, badgeBottom: -28),
-
-                        // spacing to account for overlap
+                        _imageWithFloatingBadge(
+                            imageHeight: 360, badgeLeft: 12, badgeBottom: -28),
                         const SizedBox(height: 40),
                       ],
                     ),
@@ -400,21 +424,20 @@ class _AboutSectionState extends State<AboutSection>
               );
             }
           }),
-
           const SizedBox(height: 60),
-
-          // Statistics
           LayoutBuilder(
             builder: (context, constraints) {
               final maxWidth = constraints.maxWidth;
-              // breakpoint: nếu nhỏ hơn 600 => 2 cột, ngược lại 4 cột
               final columns = maxWidth < 600 ? 2 : 4;
               const spacing = 8.0;
-              final itemWidth = (maxWidth - (columns - 1) * spacing) / columns;
+              final itemWidth =
+                  (maxWidth - (columns - 1) * spacing) / columns;
 
-              // tạo danh sách card (không const vì dùng t())
               final statCards = stats
-                  .map((s) => _StatCard(value: s['number'] as String, label: s['label'] as String))
+                  .map((s) => _StatCard(
+                value: s['number'] as String,
+                label: s['label'] as String,
+              ))
                   .toList();
 
               return Wrap(
@@ -444,14 +467,21 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? Colors.grey[900] : Colors.white;
+    final textColor = isDark ? Colors.white70 : Colors.black87;
+
     return Container(
       width: 220,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 8),
+          BoxShadow(
+            color: isDark ? Colors.black54 : Colors.black12,
+            blurRadius: 8,
+          ),
         ],
       ),
       child: Column(
@@ -465,7 +495,7 @@ class _StatCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text(label, textAlign: TextAlign.center),
+          Text(label, textAlign: TextAlign.center, style: TextStyle(color: textColor)),
         ],
       ),
     );

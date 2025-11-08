@@ -25,7 +25,6 @@ class _ContactSectionState extends State<ContactSection> {
     super.dispose();
   }
 
-  // helper lấy chuỗi dịch
   String t(String key) =>
       AppTranslations.text(key, Localizations.localeOf(context).languageCode);
 
@@ -38,7 +37,6 @@ class _ContactSectionState extends State<ContactSection> {
     }
   }
 
-  // open mail client with prefilled fields
   Future<void> _sendMessage() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
@@ -96,30 +94,40 @@ ${t('contact_footerNote')}
     int maxLines = 1,
     String? hint,
     String? Function(String?)? validator,
+    required bool isDark,
   }) {
+    final fillColor = isDark ? Colors.grey.shade800 : Colors.grey[100];
+    final borderColor = isDark ? Colors.grey.shade700 : Colors.grey.shade200;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              color: isDark ? Colors.white70 : Colors.black87,
+            )),
         const SizedBox(height: 6),
         TextFormField(
           controller: controller,
           maxLines: maxLines,
           validator: validator,
+          style: TextStyle(color: isDark ? Colors.white : Colors.black87),
           decoration: InputDecoration(
             hintText: hint,
+            hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black38),
             filled: true,
-            fillColor: Colors.grey[100],
+            fillColor: fillColor,
             contentPadding:
             const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade200),
+              borderSide: BorderSide(color: borderColor),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade200),
+              borderSide: BorderSide(color: borderColor),
             ),
           ),
         ),
@@ -129,10 +137,17 @@ ${t('contact_footerNote')}
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final accent = Colors.pink;
+
+    final bgColor = isDark ? Colors.grey.shade900 : Colors.grey[50];
+    final cardBg = isDark ? Colors.grey.shade800 : Colors.white;
+    final borderColor = isDark ? Colors.grey.shade700 : Colors.grey.shade200;
+
     return Container(
       width: double.infinity,
-      color: Colors.grey[50],
+      color: bgColor,
       padding: const EdgeInsets.symmetric(vertical: 56, horizontal: 28),
       child: Column(
         children: [
@@ -140,16 +155,21 @@ ${t('contact_footerNote')}
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.black12,
+              color: isDark ? Colors.white10 : Colors.black12,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text(t('contact_getInTouch')),
+            child: Text(t('contact_getInTouch'),
+                style: TextStyle(color: isDark ? Colors.white70 : Colors.black87)),
           ),
           const SizedBox(height: 14),
           Text(
             t('contact_mainHeading'),
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
           ),
           const SizedBox(height: 12),
           SizedBox(
@@ -157,23 +177,24 @@ ${t('contact_footerNote')}
             child: Text(
               t('contact_subHeading'),
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16, color: Colors.black54),
+              style: TextStyle(
+                fontSize: 16,
+                color: isDark ? Colors.white60 : Colors.black54,
+              ),
             ),
           ),
           const SizedBox(height: 30),
 
-          // main content: two columns on wide screens, stacked on mobile
           LayoutBuilder(builder: (context, constraints) {
             final isWide = constraints.maxWidth >= 900;
 
-            // Left card builder (form)
             Widget buildLeftCard() {
               return Container(
                 padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.grey.shade200),
+                  border: Border.all(color: borderColor),
                   boxShadow:
                   const [BoxShadow(color: Colors.black12, blurRadius: 6)],
                 ),
@@ -182,23 +203,21 @@ ${t('contact_footerNote')}
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Tiêu đề form
                       Row(
                         children: [
-                          const Icon(Icons.mail_outline, color: Colors.pink),
+                          Icon(Icons.mail_outline, color: accent),
                           const SizedBox(width: 8),
                           Text(
                             t('contact_sendMessage'),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 20),
-
-                      // Name + Email
                       Row(
                         children: [
                           Expanded(
@@ -209,6 +228,7 @@ ${t('contact_footerNote')}
                               validator: (v) => (v?.trim().isEmpty ?? true)
                                   ? t('contact_errorName')
                                   : null,
+                              isDark: isDark,
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -227,13 +247,12 @@ ${t('contact_footerNote')}
                                     ? null
                                     : t('contact_errorEmailInvalid');
                               },
+                              isDark: isDark,
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
-
-                      // Subject
                       _field(
                         label: "${t('contact_subject')} *",
                         controller: _subjectCtr,
@@ -241,10 +260,9 @@ ${t('contact_footerNote')}
                         validator: (v) => (v?.trim().isEmpty ?? true)
                             ? t('contact_errorSubject')
                             : null,
+                        isDark: isDark,
                       ),
                       const SizedBox(height: 16),
-
-                      // Message
                       _field(
                         label: "${t('contact_message')} *",
                         controller: _messageCtr,
@@ -253,10 +271,10 @@ ${t('contact_footerNote')}
                         validator: (v) => (v?.trim().isEmpty ?? true)
                             ? t('contact_errorMessage')
                             : null,
+                        isDark: isDark,
                       ),
                       const SizedBox(height: 22),
 
-                      // Send button (theo template với gradient)
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -309,18 +327,17 @@ ${t('contact_footerNote')}
               );
             }
 
-            // Right column: contact info + social cards + coffee chat
             final rightColumn = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Right info card
+                // Info card
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardBg,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: borderColor),
                     boxShadow:
                     const [BoxShadow(color: Colors.black12, blurRadius: 6)],
                   ),
@@ -329,64 +346,76 @@ ${t('contact_footerNote')}
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.favorite, color: Colors.pink),
+                          Icon(Icons.favorite, color: accent),
                           const SizedBox(width: 8),
                           Text(t('contact_connectTitle'),
-                              style:
-                              const TextStyle(fontWeight: FontWeight.w700)),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? Colors.white : Colors.black87,
+                              )),
                         ],
                       ),
                       const SizedBox(height: 12),
                       Text(
                         t('contact_connectDesc'),
-                        style: const TextStyle(color: Colors.black54),
+                        style: TextStyle(
+                            color: isDark ? Colors.white60 : Colors.black54),
                       ),
                       const SizedBox(height: 16),
                       Row(children: [
-                        const Icon(Icons.location_on_outlined,
-                            size: 18, color: Colors.black54),
+                        Icon(Icons.location_on_outlined,
+                            size: 18, color: isDark ? Colors.white60 : Colors.black54),
                         const SizedBox(width: 8),
                         Text(t('contact_location'),
-                            style:
-                            const TextStyle(fontWeight: FontWeight.w700)),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white : Colors.black87,
+                            )),
                       ]),
                       const SizedBox(height: 4),
-                      const Text("Phu My, Ho Chi Minh City", style: TextStyle(color: Colors.black54)),
+                      Text("Phu My, Ho Chi Minh City",
+                          style: TextStyle(color: isDark ? Colors.white60 : Colors.black54)),
                       const SizedBox(height: 12),
                       Row(children: [
-                        const Icon(Icons.access_time,
-                            size: 18, color: Colors.black54),
+                        Icon(Icons.access_time,
+                            size: 18, color: isDark ? Colors.white60 : Colors.black54),
                         const SizedBox(width: 8),
                         Text(t('contact_timezone'),
-                            style:
-                            const TextStyle(fontWeight: FontWeight.w700)),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white : Colors.black87,
+                            )),
                       ]),
                       const SizedBox(height: 4),
-                      const Text("ICT (UTC+7)", style: TextStyle(color: Colors.black54)),
+                      Text("ICT (UTC+7)",
+                          style: TextStyle(color: isDark ? Colors.white60 : Colors.black54)),
                       const SizedBox(height: 12),
                       Row(children: [
-                        const Icon(Icons.coffee,
-                            size: 18, color: Colors.black54),
+                        Icon(Icons.coffee,
+                            size: 18, color: isDark ? Colors.white60 : Colors.black54),
                         const SizedBox(width: 8),
                         Text(t('contact_bestTime'),
-                            style:
-                            const TextStyle(fontWeight: FontWeight.w700)),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: isDark ? Colors.white : Colors.black87,
+                            )),
                       ]),
                       const SizedBox(height: 4),
-                      const Text("9 AM - 6 PM", style: TextStyle(color: Colors.black54)),
+                      Text("9 AM - 6 PM",
+                          style: TextStyle(color: isDark ? Colors.white60 : Colors.black54)),
                     ],
                   ),
                 ),
                 const SizedBox(height: 18),
 
-                // Find me online box
+                // Social buttons
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardBg,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: borderColor),
                     boxShadow:
                     const [BoxShadow(color: Colors.black12, blurRadius: 6)],
                   ),
@@ -394,15 +423,15 @@ ${t('contact_footerNote')}
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(t('contact_findMeOnline'),
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w700, fontSize: 16)),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            color: isDark ? Colors.white : Colors.black87,
+                          )),
                       const SizedBox(height: 12),
-                      // Responsive grid: 2 per row on wide, 1 per row on narrow
                       LayoutBuilder(builder: (context, cstr) {
                         final double max = cstr.maxWidth;
-                        // spacing between items
                         const double spacing = 12;
-                        // if we consider 2 columns, each width:
                         final bool twoCol = max >= 480;
                         final double itemWidth = twoCol ? (max - spacing) / 2 : max;
 
@@ -419,16 +448,26 @@ ${t('contact_footerNote')}
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                side: BorderSide(color: Colors.grey.shade200),
+                                side: BorderSide(color: borderColor),
+                                foregroundColor: isDark ? Colors.white : Colors.black87,
                               ),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(icon, size: 28, color: Colors.black87),
+                                  Icon(icon, size: 28, color: isDark ? Colors.white : Colors.black87),
                                   const SizedBox(height: 8),
-                                  Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+                                  Text(title,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark ? Colors.white : Colors.black87,
+                                      )),
                                   const SizedBox(height: 4),
-                                  Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey[600]), textAlign: TextAlign.center),
+                                  Text(subtitle,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: isDark ? Colors.white60 : Colors.grey[600],
+                                      ),
+                                      textAlign: TextAlign.center),
                                 ],
                               ),
                             ),
@@ -472,30 +511,44 @@ ${t('contact_footerNote')}
 
                 const SizedBox(height: 18),
 
-                // Coffee Chat box (pink)
+                // Coffee Chat
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 18),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
+                    gradient: isDark
+                        ? LinearGradient(
+                      colors: [Colors.grey.shade900, Colors.grey.shade800],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                        : const LinearGradient(
                       colors: [Color(0xFFfff0f6), Color(0xFFfff5fb)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.pink.shade100),
+                    border: Border.all(
+                      color: isDark ? Colors.grey.shade700 : Colors.pink.shade100,
+                    ),
                     boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
                   ),
                   child: Column(
                     children: [
-                      const Icon(Icons.local_cafe, size: 32),
+                      Icon(Icons.local_cafe,
+                          size: 32, color: isDark ? Colors.pink.shade200 : Colors.black87),
                       const SizedBox(height: 8),
-                      Text(t('contact_coffeeChatTitle'), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                      Text(t('contact_coffeeChatTitle'),
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            color: isDark ? Colors.white : Colors.black87,
+                          )),
                       const SizedBox(height: 8),
                       Text(
                         t('contact_coffeeChatDesc'),
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.black54),
+                        style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
                       ),
                       const SizedBox(height: 12),
                       ElevatedButton(
@@ -515,13 +568,12 @@ ${t('contact_footerNote')}
                               await launchUrl(facebookUri, mode: LaunchMode.externalApplication);
                             }
                           } catch (e) {
-                            // fallback luôn nếu lỗi
                             await launchUrl(facebookUri, mode: LaunchMode.externalApplication);
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black87,
+                          backgroundColor: isDark ? Colors.grey.shade800 : Colors.white,
+                          foregroundColor: isDark ? Colors.pink.shade200 : Colors.black87,
                           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
