@@ -124,7 +124,6 @@ class _PortfolioHomeState extends State<PortfolioHome> {
     );
   }
 
-  // dùng translations từ file riêng
   String t(String key) => AppTranslations.text(key, widget.locale.languageCode);
 
   @override
@@ -179,6 +178,8 @@ class _PortfolioHomeState extends State<PortfolioHome> {
         locale: widget.locale,
         t: t,
         onToggleLanguage: widget.onToggleLanguage,
+        onToggleTheme: widget.onToggleTheme,
+        isDarkMode: widget.isDarkMode,
       ),
       body: Stack(
         children: [
@@ -239,8 +240,7 @@ class PortfolioAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       bool isMobile = constraints.maxWidth < 600;
-      final iconColor =
-      isDarkMode ? Colors.white : Colors.black; // ✅ đổi màu theo theme
+      final iconColor = isDarkMode ? Colors.white : Colors.black;
 
       return AppBar(
         backgroundColor: isDarkMode ? Colors.black : Colors.white,
@@ -302,6 +302,8 @@ class PortfolioDrawer extends StatelessWidget {
   final Locale locale;
   final String Function(String) t;
   final VoidCallback onToggleLanguage;
+  final VoidCallback onToggleTheme;
+  final bool isDarkMode;
 
   const PortfolioDrawer({
     super.key,
@@ -309,6 +311,8 @@ class PortfolioDrawer extends StatelessWidget {
     required this.locale,
     required this.t,
     required this.onToggleLanguage,
+    required this.onToggleTheme,
+    required this.isDarkMode,
   });
 
   @override
@@ -328,6 +332,17 @@ class PortfolioDrawer extends StatelessWidget {
             onTap: () {
               Navigator.pop(context);
               onToggleLanguage();
+            },
+          ),
+          ListTile(
+            leading: Icon(
+              isDarkMode ? Icons.light_mode : Icons.dark_mode,
+              color: Colors.pink,
+            ),
+            title: Text(isDarkMode ? t('light_mode') : t('dark_mode')),
+            onTap: () {
+              Navigator.pop(context);
+              onToggleTheme();
             },
           ),
         ],
