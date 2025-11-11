@@ -48,7 +48,6 @@ class AppTranslations {
       'skills_frontend_title': 'Frontend Development',
       'skills_backend_title': 'Backend & Tools',
       'skills_data_title': 'Data & Automation',
-      'skills_design_title': 'Design & UX',
       'certificates_title': 'Certificates & Achievements',
       'tech_love_title': 'Technologies I Love',
       'feature_mobile_title': 'Mobile-First Design',

@@ -183,8 +183,8 @@ class SkillsSection extends StatelessWidget {
                           child: _SkillCard(
                             icon: Icons.color_lens,
                             iconBg: Colors.pink.shade50,
-                            title: t('skills_design_title'),
-                            tags: dataTags,
+                            title: t('skills_backend_title'),
+                            tags: backendTags,
                             cardBgColor: cardBgColor(),
                             chipBgColor: chipBgColor(),
                             chipTextColor: chipTextColor(),
@@ -198,8 +198,8 @@ class SkillsSection extends StatelessWidget {
                           child: _SkillCard(
                             icon: Icons.storage,
                             iconBg: Colors.green.shade50,
-                            title: t('skills_backend_title'),
-                            tags: backendTags,
+                            title: t('skills_data_title'),
+                            tags: dataTags,
                             cardBgColor: cardBgColor(),
                             chipBgColor: chipBgColor(),
                             chipTextColor: chipTextColor(),
