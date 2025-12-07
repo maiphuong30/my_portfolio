@@ -26,7 +26,7 @@ class _HomeSectionState extends State<HomeSection>
   late final Animation<Offset> _dot1Animation; // floating dot 1 (large)
   late final Animation<Offset> _dot2Animation; // floating dot 2 (large)
 
-  // small bubbles: offsets, opacity and scale (no separate controller)
+  // small bubbles: offsets, opacity and scale
   late final Animation<Offset> _dot3Animation;
   late final Animation<double> _dot3Opacity;
   late final Animation<double> _dot3Scale;
@@ -47,14 +47,10 @@ class _HomeSectionState extends State<HomeSection>
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
 
-    // Scroll indicator bounce
     _offsetAnimation = Tween<Offset>(
       begin: const Offset(0, 0),
-      end: const Offset(0, 0.2), // nhún xuống 20%
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
+      end: const Offset(0, 0.2),
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     _dot1Animation = Tween<Offset>(
       begin: const Offset(0, 0),
@@ -66,7 +62,6 @@ class _HomeSectionState extends State<HomeSection>
       end: const Offset(0, -0.06),
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
-    // small bubble 3
     _dot3Animation = Tween<Offset>(
       begin: const Offset(-0.02, 0.0),
       end: const Offset(0.02, -0.02),
@@ -82,7 +77,6 @@ class _HomeSectionState extends State<HomeSection>
       curve: const Interval(0.0, 1.0, curve: Curves.easeInOut),
     ));
 
-    // small bubble 4
     _dot4Animation = Tween<Offset>(
       begin: const Offset(0.02, 0.02),
       end: const Offset(-0.02, 0.0),
@@ -110,12 +104,11 @@ class _HomeSectionState extends State<HomeSection>
     final cs = theme.colorScheme;
     final textColor = cs.onSurface.withOpacity(0.8);
 
-    // lấy mã ngôn ngữ hiện tại
     final localeCode = Localizations.localeOf(context).languageCode;
     final followMeLabel = AppTranslations.text('follow_me', localeCode);
 
     return Padding(
-      padding: const EdgeInsets.only(top: 24),
+      padding: const EdgeInsets.only(top: 16),
       child: SizedBox(
         width: double.infinity,
         child: Row(
@@ -128,9 +121,10 @@ class _HomeSectionState extends State<HomeSection>
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: textColor,
+                fontSize: 14,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             IconButton(
               onPressed: () async {
                 final Uri url = Uri.parse("https://www.facebook.com/thaidoanmaiphuong");
@@ -138,7 +132,7 @@ class _HomeSectionState extends State<HomeSection>
                   throw Exception('Could not launch $url');
                 }
               },
-              icon: Icon(Icons.facebook, color: cs.primary),
+              icon: Icon(Icons.facebook, color: cs.primary, size: 20),
               tooltip: 'Facebook',
             ),
             IconButton(
@@ -148,7 +142,7 @@ class _HomeSectionState extends State<HomeSection>
                   throw Exception('Could not launch $url');
                 }
               },
-              icon: FaIcon(FontAwesomeIcons.github, color: cs.onSurface),
+              icon: FaIcon(FontAwesomeIcons.github, color: cs.onSurface, size: 20),
               tooltip: 'GitHub',
             ),
             IconButton(
@@ -158,7 +152,7 @@ class _HomeSectionState extends State<HomeSection>
                   throw Exception('Could not launch $url');
                 }
               },
-              icon: FaIcon(FontAwesomeIcons.linkedin, color: cs.secondary),
+              icon: FaIcon(FontAwesomeIcons.linkedin, color: cs.secondary, size: 20),
               tooltip: 'LinkedIn',
             ),
           ],
@@ -167,7 +161,6 @@ class _HomeSectionState extends State<HomeSection>
     );
   }
 
-  /// Gradient text implemented with ShaderMask
   Widget gradientHeadline(String text, {double fontSize = 36}) {
     final gradient = const LinearGradient(
       colors: [
@@ -187,15 +180,13 @@ class _HomeSectionState extends State<HomeSection>
         style: TextStyle(
           fontSize: fontSize,
           fontWeight: FontWeight.bold,
-          // màu sẽ bị shader override, nhưng để hợp theme khi shader lỗi:
           color: Theme.of(context).colorScheme.primary,
         ),
       ),
     );
   }
 
-  /// Badge pill (dùng màu theo theme, viền nhạt)
-  Widget badgePill(String text) {
+  Widget badgePill(String text, {bool isMobile = false}) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
 
@@ -207,7 +198,10 @@ class _HomeSectionState extends State<HomeSection>
     final iconColor = _gradStart;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: EdgeInsets.symmetric(
+        horizontal: isMobile ? 8 : 12,
+        vertical: isMobile ? 4 : 6,
+      ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [bg, Color.alphaBlend(_gradEnd.withOpacity(0.08), cs.surface)],
@@ -220,13 +214,14 @@ class _HomeSectionState extends State<HomeSection>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.auto_awesome, size: 16, color: iconColor),
-          const SizedBox(width: 8),
+          Icon(Icons.auto_awesome, size: isMobile ? 14 : 16, color: iconColor),
+          SizedBox(width: isMobile ? 6 : 8),
           Text(
             text,
             style: theme.textTheme.labelMedium?.copyWith(
               fontWeight: FontWeight.w600,
               color: cs.onSurface,
+              fontSize: isMobile ? 12 : null,
             ),
           ),
         ],
@@ -234,11 +229,9 @@ class _HomeSectionState extends State<HomeSection>
     );
   }
 
-  /// Primary gradient button (giữ gradient, shadow tinh chỉnh theo theme)
   Widget _buildPrimaryButton(String text, VoidCallback onPressed,
       {EdgeInsetsGeometry? padding}) {
     final theme = Theme.of(context);
-    final pad = padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 14);
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
@@ -256,13 +249,14 @@ class _HomeSectionState extends State<HomeSection>
           borderRadius: BorderRadius.circular(12),
         ),
         child: Container(
-          padding: pad,
+          padding: padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           alignment: Alignment.center,
           child: Text(
             text,
             style: theme.textTheme.labelLarge?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.w600,
+              fontSize: 14,
             ),
           ),
         ),
@@ -270,12 +264,10 @@ class _HomeSectionState extends State<HomeSection>
     );
   }
 
-  /// Outline button theo theme
   Widget _buildOutlineButton(String text, VoidCallback onPressed,
       {EdgeInsetsGeometry? padding}) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final pad = padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 14);
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
@@ -284,20 +276,20 @@ class _HomeSectionState extends State<HomeSection>
         side: BorderSide(color: cs.primary, width: 2),
       ),
       child: Container(
-        padding: pad,
+        padding: padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         alignment: Alignment.center,
         child: Text(
           text,
           style: theme.textTheme.labelLarge?.copyWith(
             color: cs.primary,
             fontWeight: FontWeight.w600,
+            fontSize: 14,
           ),
         ),
       ),
     );
   }
 
-  /// Profile + decoration (màu viền/đổ bóng theo theme)
   Widget _buildProfileWithDecoration(double diameter) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
@@ -306,7 +298,6 @@ class _HomeSectionState extends State<HomeSection>
     final imageSize = diameter * 0.88;
     final borderWidth = diameter * 0.05;
 
-    // viền: sáng dùng trắng, tối dùng surfaceVariant
     final borderColor = theme.brightness == Brightness.dark
         ? cs.surfaceVariant
         : Colors.white;
@@ -318,7 +309,6 @@ class _HomeSectionState extends State<HomeSection>
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
-          // radial glow behind profile (pha vào nền theo theme)
           Container(
             width: bgSize,
             height: bgSize,
@@ -336,8 +326,6 @@ class _HomeSectionState extends State<HomeSection>
               ),
             ),
           ),
-
-          // main profile with theme border + shadow
           Container(
             width: imageSize,
             height: imageSize,
@@ -365,8 +353,6 @@ class _HomeSectionState extends State<HomeSection>
               ),
             ),
           ),
-
-          // Floating dot 1 (top-right)
           Positioned(
             top: diameter * 0.04,
             right: diameter * 0.04,
@@ -389,8 +375,6 @@ class _HomeSectionState extends State<HomeSection>
               ),
             ),
           ),
-
-          // Floating dot 2 (bottom-left)
           Positioned(
             bottom: diameter * 0.04,
             left: diameter * 0.04,
@@ -413,8 +397,7 @@ class _HomeSectionState extends State<HomeSection>
               ),
             ),
           ),
-
-          // Small bubble 3
+          // Small bubbles
           Positioned(
             top: -diameter * 0.04,
             left: -diameter * 0.06,
@@ -451,8 +434,6 @@ class _HomeSectionState extends State<HomeSection>
               },
             ),
           ),
-
-          // Small bubble 4
           Positioned(
             bottom: -diameter * 0.05,
             right: -diameter * 0.06,
@@ -496,38 +477,30 @@ class _HomeSectionState extends State<HomeSection>
 
   @override
   Widget build(BuildContext context) {
-    // dùng AppTranslations cùng locale hiện tại
     String t(String key) => AppTranslations.text(key, Localizations.localeOf(context).languageCode);
 
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 600;
     const double profileFraction = 0.4;
 
-    // subtract AppBar height (kToolbarHeight)
     final double deviceHeight =
         MediaQuery.of(context).size.height -
             MediaQuery.of(context).padding.vertical -
             kToolbarHeight;
     final double containerHeight = deviceHeight.clamp(360.0, 1100.0);
 
-    const double scrollIndicatorHeight = 88.0;
-
-    final double topPadding = isMobile ? 36 : 60;
-    final EdgeInsets contentPadding = EdgeInsets.fromLTRB(24, topPadding, 24, topPadding + scrollIndicatorHeight,);
+    final double topPadding = isMobile ? 24 : 60;
+    final EdgeInsets contentPadding = EdgeInsets.fromLTRB(24, topPadding, 24, topPadding + 88);
 
     final double horizontalPadding = 24.0;
     const double gapBetweenButtons = 12.0;
     final double computedButtonWidth = (screenWidth - horizontalPadding * 2 - gapBetweenButtons) / 2;
     const double buttonMinWidth = 120.0;
-    final double buttonWidth = computedButtonWidth < buttonMinWidth ? buttonMinWidth : computedButtonWidth;
+    final double buttonWidth = isMobile ? 140 : (computedButtonWidth < buttonMinWidth ? buttonMinWidth : computedButtonWidth);
 
-    // màu nền section: theo theme
     final sectionBg = cs.surface;
-
-    // màu chữ chính/phụ
     final primaryText = cs.onSurface;
     final mutedText = cs.onSurface.withOpacity(0.6);
 
@@ -537,7 +510,6 @@ class _HomeSectionState extends State<HomeSection>
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Bounded scrollable area
           SizedBox(
             height: containerHeight,
             child: SingleChildScrollView(
@@ -551,24 +523,24 @@ class _HomeSectionState extends State<HomeSection>
                         ? Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _buildProfileWithDecoration(200),
-                        const SizedBox(height: 32),
+                        _buildProfileWithDecoration(160),
+                        const SizedBox(height: 16),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            badgePill(t('available_for_projects')),
+                            badgePill(t('available_for_projects'), isMobile: true),
+                            const SizedBox(height: 8),
+                            gradientHeadline(t('hi_im_phuong'), fontSize: 24),
                             const SizedBox(height: 12),
-                            gradientHeadline(t('hi_im_phuong'), fontSize: 28),
-                            const SizedBox(height: 16),
                             Text(
                               t('short_intro_home'),
                               textAlign: TextAlign.center,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: mutedText,
-                                fontSize: 16,
+                                fontSize: 14,
                               ),
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 16),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -577,7 +549,7 @@ class _HomeSectionState extends State<HomeSection>
                                   child: _buildPrimaryButton(
                                     t('learn_about_me'),
                                     widget.onViewWork,
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                   ),
                                 ),
                                 const SizedBox(width: gapBetweenButtons),
@@ -586,7 +558,7 @@ class _HomeSectionState extends State<HomeSection>
                                   child: _buildOutlineButton(
                                     t('get_in_touch'),
                                     widget.onContact,
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                   ),
                                 ),
                               ],
@@ -648,8 +620,6 @@ class _HomeSectionState extends State<HomeSection>
               ),
             ),
           ),
-
-          // Scroll Down
           Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
@@ -668,12 +638,12 @@ class _HomeSectionState extends State<HomeSection>
                         Text(
                           t('scroll_down'),
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            fontSize: 16,
+                            fontSize: isMobile ? 12 : 16,
                             color: mutedText,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Icon(Icons.keyboard_arrow_down, size: 32, color: mutedText),
+                        Icon(Icons.keyboard_arrow_down, size: 28, color: mutedText),
                       ],
                     ),
                   ),

@@ -6,8 +6,12 @@ import 'sections/about_section.dart';
 import 'sections/skills_section.dart';
 import 'sections/contact_section.dart';
 import 'widgets/background_music.dart';
+import 'widgets/background_theme.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'localization/translations.dart';
+import 'themes/christmas/appbar.dart';
+import 'widgets/falling_snow.dart';
+import 'themes/christmas/footer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -113,6 +117,8 @@ class _PortfolioHomeState extends State<PortfolioHome> {
   final projectsKey = GlobalKey();
   final contactKey = GlobalKey();
 
+  // trạng thái special theme
+  bool _isSpecialThemeActive = false;
   void scrollToSection(GlobalKey key, {bool closeDrawer = false}) {
     if (closeDrawer && Navigator.canPop(context)) {
       Navigator.pop(context);
@@ -129,7 +135,34 @@ class _PortfolioHomeState extends State<PortfolioHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PortfolioAppBar(
+      appBar: _isSpecialThemeActive
+          ? ChristmasAppBar(
+        onMenuTap: (menu) {
+          switch (menu) {
+            case "Home":
+              scrollToSection(homeKey);
+              break;
+            case "About":
+              scrollToSection(aboutKey);
+              break;
+            case "Skills":
+              scrollToSection(skillsKey);
+              break;
+            case "Projects":
+              scrollToSection(projectsKey);
+              break;
+            case "Contact":
+              scrollToSection(contactKey);
+              break;
+          }
+        },
+        onToggleLanguage: widget.onToggleLanguage,
+        onToggleTheme: widget.onToggleTheme,
+        locale: widget.locale,
+        isDarkMode: widget.isDarkMode,
+        t: t,
+      )
+          : PortfolioAppBar(
         onMenuTap: (menu) {
           switch (menu) {
             case "Home":
@@ -197,7 +230,13 @@ class _PortfolioHomeState extends State<PortfolioHome> {
                 SkillsSection(key: skillsKey),
                 ContactSection(key: contactKey),
                 const SizedBox(height: 24),
-                Footer(locale: widget.locale, t: t),
+                _isSpecialThemeActive
+                    ? ChristmasFooter(
+                  isDarkMode: widget.isDarkMode,
+                  locale: widget.locale,
+                  t: t,
+                )
+                    : Footer(locale: widget.locale, t: t),
               ],
             ),
           ),
@@ -206,6 +245,31 @@ class _PortfolioHomeState extends State<PortfolioHome> {
             bottom: 16,
             child: const BackgroundMusic(),
           ),
+
+          // Nút theme toggle
+          Positioned(
+            right: 16,
+            bottom: 80, // trên nút music + theme
+            child: BackgroundSpecialTheme(
+              isActive: _isSpecialThemeActive,
+              onToggle: (active) {
+                setState(() {
+                  _isSpecialThemeActive = active;
+                  // TODO: bật/tắt theme đặc biệt ở đây
+                });
+              },
+            ),
+          ),
+          // Trong Stack của body
+          if (_isSpecialThemeActive)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: FallingSnow(
+                  numberOfSnowflakes: 50,
+                  isDarkMode: widget.isDarkMode,
+                ),
+              ),
+            ),
         ],
       ),
     );

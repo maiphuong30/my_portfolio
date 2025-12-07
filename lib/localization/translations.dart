@@ -12,6 +12,8 @@ class AppTranslations {
       'rights': 'All rights reserved.',
       'language_en': 'English',
       'language_vi': 'Vietnamese',
+      'merry_christmas': 'Merry Christmas',
+      'happy_new_year': 'Happy New Year',
 
       //Home
       'follow_me': 'Follow Me',
@@ -111,6 +113,8 @@ class AppTranslations {
       'rights': 'Mọi quyền được bảo lưu.',
       'language_en': 'Tiếng Anh',
       'language_vi': 'Tiếng Việt',
+      'merry_christmas': 'Giáng sinh vui vẻ',
+      'happy_new_year': 'Chúc mừng năm mới',
 
       //Home
       'follow_me': 'Theo dõi tôi',
